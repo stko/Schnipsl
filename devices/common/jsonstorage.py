@@ -68,8 +68,16 @@ class JsonStorage:
 
 		try:
 			with open(self.file_name, 'w') as outfile:
-				json.dump(self.config, outfile, sort_keys=True,
-						  indent=4, separators=(',', ': '))
+				try:
+					json.dump(self.config, outfile, sort_keys=True,
+							indent=4, separators=(',', ': '))
+				except Exception as ex: # json seems to throw an error when try to sort and numeric and string keys are mixed in a dict
+					try:
+						json.dump(self.config, outfile,
+								indent=4, separators=(',', ': '))
+					except Exception as ex2:
+						logger.warning("couldn't write unsorted config file {0}: {1}".format(
+							self.file_name,str(ex2)))
 		except Exception as ex:
 			logger.warning("couldn't write config file {0}: {1}".format(
 				self.file_name,str(ex)))
