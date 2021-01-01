@@ -37,19 +37,9 @@ class SplPlugin(StreamChannel):
 	plugin_names = ['SatIP Live']
 
 	def __init__(self, modref):
-		''' creates the simulator
+		''' inits the plugin
 		'''
-
-
-		super().__init__(modref)
-		modref.message_handler.add_event_handler(
-			self.plugin_id, 0, self.event_listener)
-		modref.message_handler.add_query_handler(
-			self.plugin_id, 0, self.query_handler)
-
-
-		# plugin specific stuff
-
+		# do the plugin specific initialisation first
 		self.origin_dir = os.path.dirname(__file__)
 		self.config = JsonStorage(os.path.join(
 			self.origin_dir, "config.json"), {
@@ -59,7 +49,12 @@ class SplPlugin(StreamChannel):
 			}
 		)
 
-	#------ plugin specific routines
+		# at last announce the own plugin
+		super().__init__(modref)
+		modref.message_handler.add_event_handler(
+			self.plugin_id, 0, self.event_listener)
+		modref.message_handler.add_query_handler(
+			self.plugin_id, 0, self.query_handler)
 
 	def loadChannels(self):
 		plugin_name=self.plugin_names[0]

@@ -44,18 +44,11 @@ class SplPlugin(SplThread):
 	plugin_names = ['HD Recorder']
 
 	def __init__(self, modref):
-		''' creates the plugin
+		''' inits the plugin
 		'''
 		self.modref = modref
 
-		super().__init__(modref.message_handler, self)
-		modref.message_handler.add_event_handler(
-			self.plugin_id, 0, self.event_listener)
-		modref.message_handler.add_query_handler(
-			self.plugin_id, 0, self.query_handler)
-		self.runFlag = True
-
-		# plugin specific stuff
+		# do the plugin specific initialisation first
 		self.origin_dir = os.path.dirname(__file__)
 		self.config = JsonStorage(os.path.join(
 			self.origin_dir, "config.json"), {'path': '/var/schnipsl', 'www-root': 'http://schnipsl:9092/'})
@@ -63,6 +56,14 @@ class SplPlugin(SplThread):
 			self.origin_dir, "records.json"), {})
 		self.record_threats={} # we need to store the thread pointers seperate from self.records, as we can't store them as json
 		self.last_recorded_time =  0 # remembers how long the last recording action is away
+
+		# at last announce the own plugin
+		super().__init__(modref.message_handler, self)
+		modref.message_handler.add_event_handler(
+			self.plugin_id, 0, self.event_listener)
+		modref.message_handler.add_query_handler(
+			self.plugin_id, 0, self.query_handler)
+		self.runFlag = True
 
 	def event_listener(self, queue_event):
 		if queue_event.type == defaults.TIMER_RECORD_REQUEST:

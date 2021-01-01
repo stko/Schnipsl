@@ -49,18 +49,11 @@ class SplPlugin(SplThread):
 	plugin_names = ['SAT EPG']
 
 	def __init__(self, modref):
-		''' creates the object
+		''' inits the plugin
 		'''
 		self.modref = modref
 
-		super().__init__(modref.message_handler, self)
-		modref.message_handler.add_event_handler(
-			self.plugin_id, 0, self.event_listener)
-		modref.message_handler.add_query_handler(
-			self.plugin_id, 0, self.query_handler)
-		self.runFlag = True
-
-		# plugin specific stuff
+		# do the plugin specific initialisation first
 		self.origin_dir = os.path.dirname(__file__)
 		self.config = JsonStorage(os.path.join(
 			self.origin_dir, "config.json"), {
@@ -82,6 +75,17 @@ class SplPlugin(SplThread):
 		self.movies = {}
 		self.timeline = {}
 		self.lock=Lock()
+
+		# at last announce the own plugin
+		super().__init__(modref.message_handler, self)
+		modref.message_handler.add_event_handler(
+			self.plugin_id, 0, self.event_listener)
+		modref.message_handler.add_query_handler(
+			self.plugin_id, 0, self.query_handler)
+		self.runFlag = True
+
+		# plugin specific stuff
+
 
 	def event_listener(self, queue_event):
 		''' react on events

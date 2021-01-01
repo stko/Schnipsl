@@ -36,18 +36,11 @@ class SplPlugin(SplThread):
 	plugin_names = ['UI Handler']
 
 	def __init__(self, modref):
-		''' creates the uihandler
+		''' inits the plugin
 		'''
 		self.modref = modref
 
-		super().__init__(modref.message_handler, self)
-		modref.message_handler.add_event_handler(
-			self.plugin_id, 0, self.event_listener)
-		modref.message_handler.add_query_handler(
-			self.plugin_id, 0, self.query_handler)
-		self.runFlag = True
-
-		# plugin specific stuff
+		# do the plugin specific initialisation first
 		self.play_time = 0
 		self.play_total_secs = 90*60
 		self.player_info = {
@@ -59,6 +52,15 @@ class SplPlugin(SplThread):
 		}
 		self.movielist = self.modref.store.read_users_value('movielist', {})
 		self.lock = threading.Lock()
+
+		# at last announce the own plugin
+		super().__init__(modref.message_handler, self)
+		modref.message_handler.add_event_handler(
+			self.plugin_id, 0, self.event_listener)
+		modref.message_handler.add_query_handler(
+			self.plugin_id, 0, self.query_handler)
+		self.runFlag = True
+
 
 	def event_listener(self, queue_event):
 		''' try to send simulated answers

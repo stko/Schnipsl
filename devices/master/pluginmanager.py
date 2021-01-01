@@ -87,10 +87,12 @@ class PluginManager():
 							continue
 
 						instance = my_module.SplPlugin(modref)
-						instance.run()
 						self.plugins[file_info.name] =instance
 			if new_plugins_found:
 				self.config.write('plugins',config_plugins)
+			#finally run all active modules
+			for instance in self.plugins.values():
+				instance.run()
 		except Exception as e:
 			print("Can't load plugin "+str(e))
 			traceback.print_exc(file=sys.stdout)

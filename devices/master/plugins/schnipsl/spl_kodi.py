@@ -228,10 +228,16 @@ class SplPlugin(SplThread):
 	plugin_names = ['Kodi']
 
 	def __init__(self, modref):
-		''' creates the plugin
+		''' inits the plugin
 		'''
 		self.modref = modref
 
+		# do the plugin specific initialisation first
+		self.devices = {}
+		self.zeroconf = zeroconf.Zeroconf()
+		self.lock=Lock()
+
+		# at last announce the own plugin
 		super().__init__(modref.message_handler, self)
 		modref.message_handler.add_event_handler(
 			self.plugin_id, 0, self.event_listener)
@@ -239,10 +245,6 @@ class SplPlugin(SplThread):
 			self.plugin_id, 0, self.query_handler)
 		self.runFlag = True
 
-		# plugin specific stuff
-		self.devices = {}
-		self.zeroconf = zeroconf.Zeroconf()
-		self.lock=Lock()
 
 	def event_listener(self, queue_event):
 		if queue_event.type == defaults.DEVICE_PLAY_REQUEST:

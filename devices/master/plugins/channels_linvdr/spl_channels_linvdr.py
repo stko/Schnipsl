@@ -42,18 +42,11 @@ class SplPlugin(SplThread):
 	plugin_names = ['LinVDR Live']
 
 	def __init__(self, modref):
-		''' creates the simulator
+		''' inits the plugin
 		'''
 		self.modref = modref
 
-		super().__init__(modref.message_handler, self)
-		modref.message_handler.add_event_handler(
-			self.plugin_id, 0, self.event_listener)
-		modref.message_handler.add_query_handler(
-			self.plugin_id, 0, self.query_handler)
-		self.runFlag = True
-
-		# plugin specific stuff
+		# do the plugin specific initialisation first
 		self.providers=set()
 		self.movies={}
 		self.serverConfig = self.modref.store.read_users_value('linvdrserver', [
@@ -63,6 +56,14 @@ class SplPlugin(SplThread):
 			}
 		])
 		self.lock=Lock()
+
+		# at last announce the own plugin
+		super().__init__(modref.message_handler, self)
+		modref.message_handler.add_event_handler(
+			self.plugin_id, 0, self.event_listener)
+		modref.message_handler.add_query_handler(
+			self.plugin_id, 0, self.query_handler)
+		self.runFlag = True
 
 	def event_listener(self, queue_event):
 		''' try to send simulated answers

@@ -49,20 +49,21 @@ class SplPlugin(SplThread):
 	plugin_names=['Öffi Mediathek','LiveTV']
 
 	def __init__(self, modref):
-		''' creates the simulator
+		''' inits the plugin
 		'''
 		self.modref = modref
 
+		# do the plugin specific initialisation first
+		self.providers=set()
+		self.movies={}
+
+		# at last announce the own plugin
 		super().__init__(modref.message_handler, self)
 		modref.message_handler.add_event_handler(
 		self.plugin_id, 0, self.event_listener)
 		modref.message_handler.add_query_handler(
 		self.plugin_id, 0, self.query_handler)
 		self.runFlag = True
-
-		##### plugin specific stuff
-		self.providers=set()
-		self.movies={}
 
 	def event_listener(self, queue_event):
 		''' react on events
