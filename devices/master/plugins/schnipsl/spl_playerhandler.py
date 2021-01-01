@@ -235,7 +235,7 @@ class SplPlugin(SplThread):
 			player_info = user_player.player_info
 			print('------------------- player_save_state Save State Request -------------')
 			self.modref.message_handler.queue_event(user_name, defaults.PLAYER_SAVE_STATE_REQUEST, {
-				'movie': user_player.movie, 'player_info': player_info})
+				'movie': user_player.movie, 'player_info': copy.copy(player_info)}) # we need to send a copy of the player_info as the original is been changed before the message is evaluated
 
 	def refresh_app_movie_info(self, user_name):
 		if user_name in self.players:
@@ -251,7 +251,6 @@ class SplPlugin(SplThread):
 				player_info = user_player.player_info
 				if user_player.device_friendly_name == cast_info['device_friendly_name']:
 					player_info.play = cast_info['play']
-					player_info.current_time = cast_info['current_time']
 					player_info.duration = cast_info['duration']
 					player_info.volume = cast_info['volume']
 					if cast_info['state_change']:
@@ -259,6 +258,7 @@ class SplPlugin(SplThread):
 						self.player_save_state(user_name)
 						# self.modref.message_handler.queue_event(user_name, defaults.PLAYER_SAVE_STATE_REQUEST, {
 						#	'movie': user_player.movie, 'player_info': player_info})
+					player_info.current_time = cast_info['current_time'] # send the current time not as player_save_state to not override the previous real play time
 					self.send_player_status(user_name, player_info)
 		except:
 			pass

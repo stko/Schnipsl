@@ -82,7 +82,7 @@ class SplPlugin(SplThread):
 					return [Movie(
 								source=self.plugin_names[0],
 								source_type=defaults.MOVIE_TYPE_RECORD,
-								provider=self.plugin_names[0],
+								provider=record_movie['new_uri'].split(':')[1], # extracts the original provider back out of the uri
 								category=record_movie['category'],
 								title=record_movie['title'],
 								timestamp=record_movie['timestamp'],
@@ -138,7 +138,7 @@ class SplPlugin(SplThread):
 						'url': movie.url,
 
 						'uri': uri,
-						'new_uri': self.plugin_names[0]+':'+uri_base64,
+						'new_uri': self.plugin_names[0]+':'+movie.provider+':'+str(movie.timestamp),
 						'new_url': self.config.read('www-root')+uri_base64+ext,
 						'uuid': uuid,
 						'ext': ext,
