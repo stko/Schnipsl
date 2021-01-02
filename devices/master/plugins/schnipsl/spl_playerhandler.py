@@ -258,15 +258,17 @@ class SplPlugin(SplThread):
 						self.player_save_state(user_name)
 						# self.modref.message_handler.queue_event(user_name, defaults.PLAYER_SAVE_STATE_REQUEST, {
 						#	'movie': user_player.movie, 'player_info': player_info})
+					if cast_info['state_change'] or cast_info['play']:
+						print(player_info.__dict__)
+						self.send_player_status(user_name, player_info)
 					player_info.current_time = cast_info['current_time'] # send the current time not as player_save_state to not override the previous real play time
-					self.send_player_status(user_name, player_info)
+					#self.send_player_status(user_name, player_info)
 		except:
 			pass
 
 	def send_player_status(self, user_name, player_info):
 		self.modref.message_handler.queue_event(user_name, defaults.MSG_SOCKET_MSG, {
 			'type': 'app_player_pos', 'config': player_info.__dict__})
-		print(player_info.__dict__)
 
 	def send_player_devices(self, user, devices, movie_uri):
 		# we set the device info
