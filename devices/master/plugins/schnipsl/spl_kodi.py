@@ -86,6 +86,8 @@ class Kodi:
 		except:
 			self.cast_info['play']=False
 		self.player_id=1
+		if current_time:
+			time.sleep(3) # in case we have a start position, we need to give the player some time to be sure that update_ status returns data which match to the stream
 		self.update_status()
 		if self.cast_info['play'] and self.supports_seek and current_time>0:
 			self.seek(current_time)
