@@ -19,14 +19,15 @@ class MovieInfo(dict):
 					movie.description
 				)
 
-	def __init__(self, uri, title, category, provider, timestamp, duration, description,query=None):
+	def __init__(self, uri, title, category, provider, timestamp, duration, description,query=None,next_title=None):
 		self['uri'] = uri
 		self['query'] = query
 		self['title'] = title
-		self['category'] = category		# for live stream infos this will be used as the title of the 2. movie
+		self['category'] = category		
+		self['next_title'] = next_title		# for live stream infos this will be used as the title of the 2. movie
 		self['provider'] = provider
 		self['timestamp'] = timestamp	# for live stream infos this will be used as the start time of the 2. movie
-		self['duration'] = duration 	# for live stream infos this will be used as the remaining time of the 1. movie
+		self['duration'] = duration 	# for live stream infos this will be used as already played time of the 1. movie in percent
 		self['description'] = description
 		self['description_show'] = False # helper flag for Vue
 		self['streamable'] = False # e.g. EPG items can not be streamed, only recorded

@@ -389,13 +389,19 @@ class SplPlugin(SplThread):
 			if i < nr_of_entries and i>0 and time_stamp <  int(epg_list[i-1].timestamp)+int(epg_list[i-1].movie_info['duration']):  # we found an entry
 				first_movie_info=epg_list[i-1].movie_info
 				second_movie_info=epg_list[i].movie_info
+				processed_time_percentage=(time_stamp-int(first_movie_info['timestamp']))*100/first_movie_info['duration']
+				if processed_time_percentage<0:
+					processed_time_percentage=0
+				if processed_time_percentage>100:
+					processed_time_percentage=100
 				combined_movie_info=MovieInfo(
 					uri=first_movie_info['uri'],
 					title=first_movie_info['title'],
-					category=second_movie_info['title'],
+					category=first_movie_info['category'],
+					next_title=second_movie_info['title'],
 					provider=first_movie_info['provider'],
 					timestamp=second_movie_info['timestamp'],
-					duration=0,  # 
+					duration=processed_time_percentage,  # 
 					description=first_movie_info['description'],
 					query=first_movie_info['query']
 				)

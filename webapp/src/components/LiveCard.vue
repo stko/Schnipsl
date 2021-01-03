@@ -20,15 +20,15 @@
 					)
 				}}</div>
 				<div id="duration">{{ duration(item.movie_info.duration) }}</div>
-				<div id="next"></div>
+				<div id="next">{{ item.movie_info.next_title }}</div>
 				<div id="edit"
 					><v-btn icon @click="nav2Edit(item.uuid, item.query, item)">
-						<v-icon color="grey lighten-1">mdi-pencil</v-icon>
+						<v-icon color="orange darken-1">mdi-pencil</v-icon>
 					</v-btn></div
 				>
 				<div id="share">
 					<v-btn icon @click="share(item.uuid)">
-						<v-icon color="grey lighten-1">mdi-share-variant</v-icon>
+						<v-icon color="orange darken-1">mdi-share-variant</v-icon>
 					</v-btn></div
 				>
 				<div id="record">
@@ -37,28 +37,28 @@
 						v-if="item.movie_info.recordable"
 						@click="requestRecordAdd(item.movie_info.uri)"
 					>
-						<v-icon color="grey lighten-1">mdi-record</v-icon>
+						<v-icon color="red darken-1">mdi-record</v-icon>
 					</v-btn>
 				</div>
 				<div id="show">
 					<v-btn icon @click="description_show = !description_show">
-						<v-icon color="grey lighten-1">{{ description_show ? 'mdi-chevron-up' : 'mdi-chevron-down' }}</v-icon>
+						<v-icon color="orange darken-1">{{ description_show ? 'mdi-chevron-up' : 'mdi-chevron-down' }}</v-icon>
 					</v-btn>
 
 				</div>
 				
 					<!-- <progress id="viewed" :value="progress(item.current_time,item.movie_info.duration)" max="100">{{progress(item.current_time,item.movie_info.duration)}} %</progress> -->
 				<div id="viewed">
-					<div></div>
+					<div :style="{width: item.movie_info.duration+'%'}"></div>
 				</div>
 				
-				<div id="description">
+				<!-- <div id="description"> -->
 					<v-expand-transition>
-						<div v-show="description_show">
+						<div id="description" v-show="description_show">
 							{{item.movie_info.description}}
 						</div>
 					</v-expand-transition>
-				</div>
+				<!-- </div> -->
 				
 	</div>
 </template>
@@ -82,13 +82,6 @@ export default {
 			'duration',
 			'localMinutes'],
 	methods:{
-		progress( ) {
-			return 70
-		},
-		progress2( viewed,duration) {
-			return viewed*100 / duration
-		},
-
 	}
 	
 };
@@ -115,7 +108,8 @@ export default {
   grid-area: marker;  
 } 
 #name { 
-  background:gold; 
+  background:grey; 
+  color: white;
   grid-area: name;
   font-family: "Atkinson-Hyperlegible", Helvetica, Arial;
   font-size:200%;
@@ -125,7 +119,8 @@ export default {
   
 } 
 #series { 
-  background:lightgreen; 
+  background:grey; 
+  color: white;
   grid-area: series;
   font-family: "Atkinson-Hyperlegible", Helvetica, Arial;
   font-size:150%;
@@ -133,24 +128,30 @@ export default {
   padding-left: 5px;
 } 
 #provider { 
-  background:lightblue; 
+  background:grey; 
+  color: white; 
   grid-area: provider;
   text-align:left;
+  padding-left: 5px;
 }
 #day { 
-  background:lightblue; 
+  background:grey; 
+  color: white;
   grid-area: day;
 }
 #time { 
-  background:lightblue; 
+  background:grey; 
+  color: white; 
   grid-area: time;
 }
 #duration { 
-  background:lightblue; 
+  background:grey; 
+  color: white;
   grid-area: duration;
 }
 #next { 
-  background:lightgreen; 
+  background:grey; 
+  color: white; 
   grid-area: next;
   font-family: "Atkinson-Hyperlegible", Helvetica, Arial;
   font-size:100%;
@@ -159,8 +160,8 @@ export default {
 } 
 
 #viewed {
-  background-color: black;
-  border-radius: 13px;
+  background:grey; 
+  /*border-radius: 13px;*/
   /* (height of inner div) / 2 + padding */
   padding: 3px;
   grid-area: viewed;
@@ -177,22 +178,27 @@ export default {
 
 #edit { 
   background:grey; 
+  color: white; 
   grid-area: edit;
 } 
 #share { 
   background:grey; 
+  color: white; 
   grid-area: share;
 } 
 #record { 
   background:grey; 
+  color: white; 
   grid-area: record;
 } 
 #show { 
   background:grey; 
+  color: white;
   grid-area: show;
 } 
-description { 
+#description { 
   background:grey; 
+  color: white;
   grid-area: description;
 } 
 
