@@ -34,28 +34,31 @@
 				<div id="record">
 					<v-btn
 						icon
-						class="mx-4"
 						v-if="item.movie_info.recordable"
 						@click="requestRecordAdd(item.movie_info.uri)"
 					>
-						<v-icon size="24px">mdi-record</v-icon>
+						<v-icon color="grey lighten-1">mdi-record</v-icon>
 					</v-btn>
 				</div>
 				<div id="show">
 					<v-btn icon @click="description_show = !description_show">
-						<v-icon>{{ description_show ? 'mdi-chevron-up' : 'mdi-chevron-down' }}</v-icon>
+						<v-icon color="grey lighten-1">{{ description_show ? 'mdi-chevron-up' : 'mdi-chevron-down' }}</v-icon>
 					</v-btn>
 
 				</div>
-				<div id="viewed">{{ localMinutes(item.current_time) }}</div>
 				
-				<description>
+					<!-- <progress id="viewed" :value="progress(item.current_time,item.movie_info.duration)" max="100">{{progress(item.current_time,item.movie_info.duration)}} %</progress> -->
+				<div id="viewed">
+					<div></div>
+				</div>
+				
+				<div id="description">
 					<v-expand-transition>
 						<div v-show="description_show">
 							{{item.movie_info.description}}
 						</div>
 					</v-expand-transition>
-				</description>
+				</div>
 				
 	</div>
 </template>
@@ -78,6 +81,15 @@ export default {
 			'localDateTime',
 			'duration',
 			'localMinutes'],
+	methods:{
+		progress( ) {
+			return 70
+		},
+		progress2( viewed,duration) {
+			return viewed*100 / duration
+		},
+
+	}
 	
 };
 </script>
@@ -85,8 +97,8 @@ export default {
 <style scoped>
 .schnipsl-livecard {
   display: grid;
-  grid-template-columns: 10px 1fr 1fr 1fr 1fr max-content;
-  grid-template-rows: 1fr 1fr 1fr 1fr 20px;
+  grid-template-columns: 10px 1fr 1fr 1fr 1fr 40px;
+  grid-template-rows: repeat(5, min-content);
   gap: 0px 0px;
 	grid-template-areas:  
 	"marker name name name name edit" 
@@ -97,23 +109,28 @@ export default {
 	"marker description description description description description" 
   ; 
 }
+
 #marker { 
-  background:tomato; 
+  background:rgb(255, 0, 0); 
   grid-area: marker;  
 } 
 #name { 
   background:gold; 
   grid-area: name;
-  font-family:verdana;
+  font-family: "Atkinson-Hyperlegible", Helvetica, Arial;
   font-size:200%;
   text-align:left;
+  padding-left: 5px;
+  font-weight: bold;
+  
 } 
 #series { 
   background:lightgreen; 
   grid-area: series;
-  font-family:verdana;
+  font-family: "Atkinson-Hyperlegible", Helvetica, Arial;
   font-size:150%;
   text-align:left;
+  padding-left: 5px;
 } 
 #provider { 
   background:lightblue; 
@@ -135,11 +152,29 @@ export default {
 #next { 
   background:lightgreen; 
   grid-area: next;
+  font-family: "Atkinson-Hyperlegible", Helvetica, Arial;
+  font-size:100%;
+  text-align:left;
+  padding-left: 5px;
 } 
-#viewed { 
-  background:gold; 
+
+#viewed {
+  background-color: black;
+  border-radius: 13px;
+  /* (height of inner div) / 2 + padding */
+  padding: 3px;
   grid-area: viewed;
-} 
+}
+
+#viewed>div {
+  background-color: orange;
+  width: 40%;
+  /* Adjust with JavaScript */
+  height: 20px;
+  border-radius: 10px;
+}
+
+
 #edit { 
   background:grey; 
   grid-area: edit;
@@ -161,18 +196,5 @@ description {
   grid-area: description;
 } 
 
-
-/* For presentation only, no need to copy the code below */
-.grid-container * {
-  border: 1px solid red;
-  position: relative;
-}
-
-.grid-container *:after {
-  content:attr(class);
-  position: absolute;
-  top: 0;
-  left: 0;
-}
 
 </style>

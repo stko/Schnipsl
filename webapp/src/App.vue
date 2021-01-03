@@ -292,5 +292,10 @@ export default {
 			color: #42b983;
 		}
 	}
+@font-face {
+  font-family: "Atkinson-Hyperlegible";
+  src: local("Atkinson-Hyperlegible"),
+   url(./fonts/Atkinson-Hyperlegible/Atkinson-Hyperlegible-Regular-102.ttf) format("truetype");
+}
 }
 </style>

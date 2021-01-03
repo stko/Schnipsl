@@ -1,3 +1,5 @@
+// https://stackoverflow.com/questions/49501873/css-grid-items-based-on-minimum-width-and-percentage
+
 <template>
 	<v-card max-width="600" class="mx-auto">
 		<v-toolbar color="light-blue" dark>
