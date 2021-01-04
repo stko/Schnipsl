@@ -113,6 +113,7 @@ export default {
   grid-area: name;
   font-family: "Atkinson-Hyperlegible", Helvetica, Arial;
   font-size:200%;
+  line-height: 100%;
   text-align:left;
   padding-left: 5px;
   font-weight: bold;
