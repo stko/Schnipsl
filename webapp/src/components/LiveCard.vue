@@ -101,11 +101,16 @@ export default {
 	"marker viewed viewed viewed  viewed viewed" 
 	"marker description description description description description" 
   ; 
-}
+  background:grey; 
+    border-radius: 10px;
+  padding: 5px;
+  margin-bottom: 10px;
+  }
 
 #marker { 
   background:rgb(255, 0, 0); 
   grid-area: marker;  
+  border-radius: 5px;
 } 
 #name { 
   background:grey; 
@@ -130,24 +135,28 @@ export default {
 } 
 #provider { 
   background:grey; 
-  color: white; 
+  color:lightgray; 
+  font-weight: bold;
   grid-area: provider;
   text-align:left;
   padding-left: 5px;
 }
 #day { 
   background:grey; 
-  color: white;
+  color:lightgray; 
+  font-weight: bold;
   grid-area: day;
 }
 #time { 
   background:grey; 
-  color: white; 
+  color:lightgray; 
+  font-weight: bold;
   grid-area: time;
 }
 #duration { 
   background:grey; 
-  color: white;
+  color:lightgray; 
+  font-weight: bold;
   grid-area: duration;
 }
 #next { 
