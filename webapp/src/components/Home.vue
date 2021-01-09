@@ -13,186 +13,158 @@
 				<v-icon>mdi-plus-circle</v-icon>
 			</v-btn>
 		</v-toolbar>
+		<v-tabs grow>
+			<v-tab>	{{ $t("main_templates") }}	</v-tab>
+			<v-tab>	{{ $t("main_streams") }}	</v-tab>
+			<v-tab>	{{ $t("main_records") }}	</v-tab>
+			<v-tab>	{{ $t("main_timers") }}		</v-tab>
+			<v-tab-item>
+			<v-list two-line>
+				<v-list-item v-for="item in movie_list.templates" :key="item.uuid">
+					<v-list-item-avatar>
+						<v-icon :class="[item.iconClass]" v-text="item.icon"></v-icon>
+					</v-list-item-avatar>
 
-		<v-list two-line subheader>
-			<v-subheader inset>{{ $t("main_templates") }}</v-subheader>
-			<v-list-item v-for="item in movie_list.templates" :key="item.uuid">
-				<v-list-item-avatar>
-					<v-icon :class="[item.iconClass]" v-text="item.icon"></v-icon>
-				</v-list-item-avatar>
+					<v-list-item-content @click="nav2Edit(item.uuid, item.query)">
+						<v-list-item-title v-text="item.movie_info.title"></v-list-item-title>
+					</v-list-item-content>
 
-				<v-list-item-content @click="nav2Edit(item.uuid, item.query)">
-					<v-list-item-title v-text="item.movie_info.title"></v-list-item-title>
-				</v-list-item-content>
+					<v-list-item-action>
+						<v-btn icon @click="share(item.uuid)">
+							<v-icon color="grey lighten-1">mdi-share-variant</v-icon>
+						</v-btn>
+					</v-list-item-action>
+				</v-list-item>
+			</v-list>
+			</v-tab-item>
+			<v-tab-item>
+				<live-card v-for="item in movie_list.streams" :key="item.uuid" :item="item" />
+			</v-tab-item>
+			<v-tab-item>
+				<v-list two-line>
+					<v-list-item v-for="item in movie_list.records" :key="item.uuid">
+						<v-list-item-avatar>
+							<v-icon :class="[item.iconClass]" v-text="item.icon"></v-icon>
+						</v-list-item-avatar>
 
-				<v-list-item-action>
-					<v-btn icon @click="share(item.uuid)">
-						<v-icon color="grey lighten-1">mdi-share-variant</v-icon>
-					</v-btn>
-				</v-list-item-action>
-			</v-list-item>
+						<v-list-item-content @click="nav2Play(item.movie_info.uri)">
+							<v-list-item-title
+								v-text="item.movie_info.title + ' • ' + item.movie_info.category"
+							></v-list-item-title>
+							<v-list-item-subtitle
+								v-text="
+									item.movie_info.provider +
+									' • ' +
+									localDateTime(
+										item.movie_info.timestamp,
+										$t('locale_date_time_format')
+									) +
+									' • ' +
+									duration(item.movie_info.duration) +
+									' • ' +
+									duration(item.current_time)
+								"
+							></v-list-item-subtitle>
+							<v-expand-transition>
+								<div v-show="item.movie_info.description_show">
+									<v-divider></v-divider>
 
-			<v-subheader inset>{{ $t("main_streams") }}</v-subheader>
-			<!-- 
-			<v-list-item v-for="item in movie_list.streams" :key="item.uuid">
-				<v-list-item-avatar>
-					<v-icon :class="[item.iconClass]" v-text="item.icon"></v-icon>
-				</v-list-item-avatar>
+									<v-card-text>{{ item.movie_info.description }}</v-card-text>
+								</div>
+							</v-expand-transition>
+						</v-list-item-content>
 
-				<v-list-item-content @click="nav2Play(item.movie_info.uri)">
-					<v-list-item-title v-text="item.movie_info.title +' • '+ localMinutes(item.current_time)"></v-list-item-title>
-					<v-list-item-subtitle
-						v-text="item.movie_info.provider +' • '+ localDateTime
-			(item.movie_info.timestamp,$t('locale_date_time_format')) +' • '+ item.movie_info.category"
-					></v-list-item-subtitle>
-					<v-expand-transition>
-						<div v-show="item.movie_info.description_show">
-							<v-divider></v-divider>
-							<v-card-text>{{item.movie_info.description}}</v-card-text>
-						</div>
-					</v-expand-transition>
-				</v-list-item-content>
+						<v-list-item-action>
+							<v-btn icon @click="nav2Edit(item.uuid, item.query)">
+								<v-icon color="grey lighten-1">mdi-pencil</v-icon>
+							</v-btn>
+							<v-btn icon @click="share(item.uuid)">
+								<v-icon color="grey lighten-1">mdi-share-variant</v-icon>
+							</v-btn>
+							<v-btn
+								icon
+								class="mx-4"
+								v-if="item.movie_info.recordable"
+								@click="requestRecordAdd(item.movie_info.uri)"
+							>
+								<v-icon size="24px">mdi-record</v-icon>
+							</v-btn>
+							<v-btn
+								icon
+								@click="
+									item.movie_info.description_show = !item.movie_info
+										.description_show
+								"
+							>
+								<v-icon>{{
+									item.movie_info.description_show
+										? "mdi-chevron-up"
+										: "mdi-chevron-down"
+								}}</v-icon>
+							</v-btn>
+						</v-list-item-action>
+					</v-list-item>
+				</v-list>
+			</v-tab-item>
+			<v-tab-item>
+				<v-list two-line >
+					<v-list-item v-for="item in movie_list.timers" :key="item.uuid">
+						<v-list-item-avatar>
+							<v-icon :class="[item.iconClass]" v-text="item.icon"></v-icon>
+						</v-list-item-avatar>
 
-				<v-list-item-action>
-					<v-btn icon @click="nav2Edit(item.uuid,item.query,item)">
-						<v-icon color="grey lighten-1">mdi-pencil</v-icon>
-					</v-btn>
-					<v-btn icon @click="share(item.uuid)">
-						<v-icon color="grey lighten-1">mdi-share-variant</v-icon>
-					</v-btn>
-					<v-btn icon class="mx-4" v-if="item.movie_info.recordable" @click="requestRecordAdd(item.movie_info.uri)">
-						<v-icon size="24px">mdi-record</v-icon>
-					</v-btn>
-					<v-btn icon @click="item.movie_info.description_show = !item.movie_info.description_show">
-						<v-icon>{{ item.movie_info.description_show ? 'mdi-chevron-up' : 'mdi-chevron-down' }}</v-icon>
-					</v-btn>
-				</v-list-item-action>
-			</v-list-item>
- -->
+						<v-list-item-content @click="nav2Play(item.movie_info.uri)">
+							<v-list-item-title
+								v-text="item.movie_info.title + ' • ' + item.movie_info.category"
+							></v-list-item-title>
+							<v-list-item-subtitle
+								v-text="
+									item.movie_info.provider +
+									' • ' +
+									localDateTime(
+										item.movie_info.timestamp,
+										$t('locale_date_time_format')
+									) +
+									' • ' +
+									duration(item.movie_info.duration) +
+									' • ' +
+									duration(item.current_time)
+								"
+							></v-list-item-subtitle>
+							<v-expand-transition>
+								<div v-show="item.movie_info.description_show">
+									<v-divider></v-divider>
 
-			<live-card v-for="item in movie_list.streams" :key="item.uuid" :item="item" >
+									<v-card-text>{{ item.movie_info.description }}</v-card-text>
+								</div>
+							</v-expand-transition>
+						</v-list-item-content>
 
-			</live-card>
-
-			<v-subheader inset>{{ $t("main_records") }}</v-subheader>
-			<v-list-item v-for="item in movie_list.records" :key="item.uuid">
-				<v-list-item-avatar>
-					<v-icon :class="[item.iconClass]" v-text="item.icon"></v-icon>
-				</v-list-item-avatar>
-
-				<v-list-item-content @click="nav2Play(item.movie_info.uri)">
-					<v-list-item-title
-						v-text="item.movie_info.title + ' • ' + item.movie_info.category"
-					></v-list-item-title>
-					<v-list-item-subtitle
-						v-text="
-							item.movie_info.provider +
-							' • ' +
-							localDateTime(
-								item.movie_info.timestamp,
-								$t('locale_date_time_format')
-							) +
-							' • ' +
-							duration(item.movie_info.duration) +
-							' • ' +
-							duration(item.current_time)
-						"
-					></v-list-item-subtitle>
-					<v-expand-transition>
-						<div v-show="item.movie_info.description_show">
-							<v-divider></v-divider>
-
-							<v-card-text>{{ item.movie_info.description }}</v-card-text>
-						</div>
-					</v-expand-transition>
-				</v-list-item-content>
-
-				<v-list-item-action>
-					<v-btn icon @click="nav2Edit(item.uuid, item.query)">
-						<v-icon color="grey lighten-1">mdi-pencil</v-icon>
-					</v-btn>
-					<v-btn icon @click="share(item.uuid)">
-						<v-icon color="grey lighten-1">mdi-share-variant</v-icon>
-					</v-btn>
-					<v-btn
-						icon
-						class="mx-4"
-						v-if="item.movie_info.recordable"
-						@click="requestRecordAdd(item.movie_info.uri)"
-					>
-						<v-icon size="24px">mdi-record</v-icon>
-					</v-btn>
-					<v-btn
-						icon
-						@click="
-							item.movie_info.description_show = !item.movie_info
-								.description_show
-						"
-					>
-						<v-icon>{{
-							item.movie_info.description_show
-								? "mdi-chevron-up"
-								: "mdi-chevron-down"
-						}}</v-icon>
-					</v-btn>
-				</v-list-item-action>
-			</v-list-item>
-			<v-subheader inset>{{ $t("main_timers") }}</v-subheader>
-			<v-list-item v-for="item in movie_list.timers" :key="item.uuid">
-				<v-list-item-avatar>
-					<v-icon :class="[item.iconClass]" v-text="item.icon"></v-icon>
-				</v-list-item-avatar>
-
-				<v-list-item-content @click="nav2Play(item.movie_info.uri)">
-					<v-list-item-title
-						v-text="item.movie_info.title + ' • ' + item.movie_info.category"
-					></v-list-item-title>
-					<v-list-item-subtitle
-						v-text="
-							item.movie_info.provider +
-							' • ' +
-							localDateTime(
-								item.movie_info.timestamp,
-								$t('locale_date_time_format')
-							) +
-							' • ' +
-							duration(item.movie_info.duration) +
-							' • ' +
-							duration(item.current_time)
-						"
-					></v-list-item-subtitle>
-					<v-expand-transition>
-						<div v-show="item.movie_info.description_show">
-							<v-divider></v-divider>
-
-							<v-card-text>{{ item.movie_info.description }}</v-card-text>
-						</div>
-					</v-expand-transition>
-				</v-list-item-content>
-
-				<v-list-item-action>
-					<v-btn icon @click="nav2Edit(item.uuid, item.query)">
-						<v-icon color="grey lighten-1">mdi-pencil</v-icon>
-					</v-btn>
-					<v-btn icon @click="share(item.uuid)">
-						<v-icon color="grey lighten-1">mdi-share-variant</v-icon>
-					</v-btn>
-					<v-btn
-						icon
-						@click="
-							item.movie_info.description_show = !item.movie_info
-								.description_show
-						"
-					>
-						<v-icon>{{
-							item.movie_info.description_show
-								? "mdi-chevron-up"
-								: "mdi-chevron-down"
-						}}</v-icon>
-					</v-btn>
-				</v-list-item-action>
-			</v-list-item>
-		</v-list>
+						<v-list-item-action>
+							<v-btn icon @click="nav2Edit(item.uuid, item.query)">
+								<v-icon color="grey lighten-1">mdi-pencil</v-icon>
+							</v-btn>
+							<v-btn icon @click="share(item.uuid)">
+								<v-icon color="grey lighten-1">mdi-share-variant</v-icon>
+							</v-btn>
+							<v-btn
+								icon
+								@click="
+									item.movie_info.description_show = !item.movie_info
+										.description_show
+								"
+							>
+								<v-icon>{{
+									item.movie_info.description_show
+										? "mdi-chevron-up"
+										: "mdi-chevron-down"
+								}}</v-icon>
+							</v-btn>
+						</v-list-item-action>
+					</v-list-item>
+				</v-list>
+			</v-tab-item>
+		</v-tabs>
 	</v-card>
 </template>
 
@@ -287,7 +259,7 @@ export default {
 						},
 					},
 				],
-			},
+			}
 		};
 	},
 	created() {
@@ -388,18 +360,17 @@ export default {
 			}
 		},
 	},
-    provide: function () {
-        return {
+	provide: function () {
+		return {
 			nav2Edit: this.nav2Edit,
 			nav2Play: this.nav2Play,
 			requestRecordAdd: this.requestRecordAdd,
 			share: this.share,
 			localDateTime: this.localDateTime,
 			duration: this.duration,
-			localMinutes: this.localMinutes
-			
-		}
-    }
+			localMinutes: this.localMinutes,
+		};
+	},
 };
 </script>
 

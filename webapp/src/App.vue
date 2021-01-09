@@ -1,5 +1,5 @@
 <template>
-	<v-app toolbar footer>
+	<v-app toolbar footer dark>
 		<!-- Provides the application the proper gutter -->
 		<v-main>
 		<v-container>
