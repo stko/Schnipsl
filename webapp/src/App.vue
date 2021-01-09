@@ -1,9 +1,11 @@
 <template>
 	<v-app toolbar footer>
 		<!-- Provides the application the proper gutter -->
-		<v-container fluid>
+		<v-main>
+		<v-container>
 			<router-view />
 		</v-container>
+		</v-main>
 		<v-row justify="center">
 			<v-dialog v-model="device_dialog_show" scrollable max-width="300px">
 				<v-card>
@@ -70,8 +72,8 @@
 				</v-card>
 			</v-dialog>
 		</v-row>
-		<v-footer padless>
-			<v-card class="mx-auto" max-width="600">
+		<v-footer app>
+			<v-card>
 				<v-card-title
 					>{{ movie_info.title }} • {{ movie_info.category }}</v-card-title
 				>
