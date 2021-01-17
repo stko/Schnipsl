@@ -233,6 +233,9 @@ class SplPlugin(SplThread):
 		if user_name in self.players:
 			user_player = self.players[user_name]
 			player_info = user_player.player_info
+			if not player_info.current_time>-1:
+				print('player is not playing, so state is not saved')
+				return
 			print('------------------- player_save_state Save State Request -------------')
 			self.modref.message_handler.queue_event(user_name, defaults.PLAYER_SAVE_STATE_REQUEST, {
 				'movie': user_player.movie, 'player_info': copy.copy(player_info)}) # we need to send a copy of the player_info as the original is been changed before the message is evaluated
@@ -251,8 +254,6 @@ class SplPlugin(SplThread):
 				player_info = user_player.player_info
 				if user_player.device_friendly_name == cast_info['device_friendly_name']:
 					player_info.play = cast_info['play']
-					player_info.duration = cast_info['duration']
-					player_info.volume = cast_info['volume']
 					if cast_info['state_change']:
 						print('------------------- handle_device_play_status Save State Request -------------')
 						self.player_save_state(user_name)
@@ -261,7 +262,10 @@ class SplPlugin(SplThread):
 					if cast_info['state_change'] or cast_info['play']:
 						print(player_info.__dict__)
 						self.send_player_status(user_name, player_info)
-					player_info.current_time = cast_info['current_time'] # send the current time not as player_save_state to not override the previous real play time
+					# send the current data not as player_save_state to not override the previous real play times
+					player_info.current_time = cast_info['current_time']
+					player_info.duration = cast_info['duration']
+					player_info.volume = cast_info['volume']
 					#self.send_player_status(user_name, player_info)
 		except:
 			pass

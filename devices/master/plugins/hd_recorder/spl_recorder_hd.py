@@ -143,7 +143,8 @@ class SplPlugin(SplThread):
 						'uuid': uuid,
 						'ext': ext,
 						'file_path': file_path,
-						'state': record_states.WAIT_FOR_RECORDING
+						'state': record_states.WAIT_FOR_RECORDING,
+						'errorcount': 4 # try to start the record up to 4 times before it finally failes
 					})
 				if movie.source_type == defaults.MOVIE_TYPE_STREAM:
 					# recording a stream with a duration of 0 is a very bad idea, because it would never stop..
@@ -159,12 +160,14 @@ class SplPlugin(SplThread):
 							'url': movie.url,
 
 							'uri': uri,
-							'new_uri': self.plugin_names[0]+':'+uri_base64,
+							#'new_uri': self.plugin_names[0]+':'+movie.provider+':'+uri_base64,
+							'new_uri': self.plugin_names[0]+':'+movie.provider+':'+str(movie.timestamp),
 							'new_url': self.config.read('www-root')+uri_base64+ext,
 							'uuid': uuid,
 							'ext': ext,
 							'file_path': file_path,
-							'state': record_states.WAIT_FOR_RECORDING
+							'state': record_states.WAIT_FOR_RECORDING,
+							'errorcount': 4 # try to start the record up to 4 times before it finally failes
 						})
 	
 	def check_for_records(self):
@@ -184,6 +187,10 @@ class SplPlugin(SplThread):
 					continue
 				# it's time to start
 				if record['record_starttime']-self.config.read('padding_secs', 300) <= act_time and record['record_starttime']+record['record_duration'] > act_time:
+					# in case the movie has already started, we correct starttime and duration to show the real values
+					if record['record_starttime'] < act_time:
+						record['starttime'] = str(act_time)
+						record['duration'] = record['duration'] - (act_time - record['record_starttime'])
 					record['state'] = record_states.ACTUAL_RECORDING
 					self.records.write(uri, record)
 					self.recording(record)
@@ -266,7 +273,12 @@ def record_thread(record, padding_time):
 			if completed_process.returncode:
 				print("recorder ended with an error:\n%s" %
 					  (completed_process.returncode))
-				record['state'] = record_states.RECORDING_FAILED
+				try:
+					record['errorcount']-=1
+				except:
+					record['errorcount']=4 # just a temporary fix to avoid a crash on older configs
+				if record['errorcount']<=0:
+					record['state'] = record_states.RECORDING_FAILED
 			else:
 				print("recorder ended")
 				record['state'] = record_states.RECORDING_FINISHED

@@ -245,6 +245,8 @@ class SplPlugin(SplThread):
 			}
 			with self.lock:
 				self.create_new_movie_list_item(queue_event.user, None, queue_event.data['uri'], uuid, query, True)
+			self.modref.message_handler.queue_event(queue_event.user, defaults.MSG_SOCKET_MSG, {
+				'type': defaults.MSG_SOCKET_HOME_MOVIE_INFO_LIST, 'config': self.prepare_movie_list(queue_event.user)})
 		# for further pocessing, do not forget to return the queue event
 		return queue_event
 
