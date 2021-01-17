@@ -73,69 +73,22 @@
 			</v-dialog>
 		</v-row>
 		<v-footer app>
-			<v-card>
-				<v-card-title
-					>{{ movie_info.title }} • {{ movie_info.category }}</v-card-title
-				>
-				<v-card-subtitle
-					>{{ movie_info.provider }} •
-					{{ localDate(movie_info.timestamp, $t("locale_date_format")) }} •
-					{{ duration(movie_info.duration) }} •
-					{{ duration(movie_info.current_time) }}</v-card-subtitle
-				>
-				<v-slider
-					v-model="app_player_pos.volume"
-					prepend-icon="mdi-volume-low"
-					append-icon="mdi-volume-high"
-					@click="player_volume()"
-				></v-slider>
-				<v-card-actions>
-					<v-btn icon class="mx-4" @click="device_dialog_show = true">
-						<v-icon size="24px">mdi-television-classic</v-icon>
-					</v-btn>
-					<v-btn icon class="mx-4" @click="player_key('prev')">
-						<v-icon size="24px">mdi-skip-previous</v-icon>
-					</v-btn>
-					<v-btn icon class="mx-4" @click="player_key('minus10')">
-						<v-icon size="24px">mdi-rewind-10</v-icon>
-					</v-btn>
-					<v-btn icon class="mx-4" @click="player_key('play')">
-						<v-icon>{{
-							app_player_pos.play ? "mdi-pause" : "mdi-play"
-						}}</v-icon>
-					</v-btn>
-					<v-btn icon class="mx-4" @click="player_key('plus10')">
-						<v-icon size="24px">mdi-fast-forward-10</v-icon>
-					</v-btn>
-					<v-btn icon class="mx-4" @click="player_key('stop')">
-						<v-icon size="24px">mdi-stop</v-icon>
-					</v-btn>
-					<v-btn icon class="mx-4" v-if="movie_info.recordable" @click="stop_and_record_dialog_show = true">
-						<v-icon size="24px">mdi-bed</v-icon>
-					</v-btn>
-					<v-btn icon @click="show = !show">
-						<v-icon>{{ show ? "mdi-chevron-up" : "mdi-chevron-down" }}</v-icon>
-					</v-btn>
-				</v-card-actions>
-				{{ duration(app_player_pos.current_time) }}
-				<v-slider v-model="sliderPosition" append-icon="mdi-timer"></v-slider>
-				{{ duration(movie_info.duration - app_player_pos.current_time) }}
-				<v-expand-transition>
-					<div v-show="show">
-						<v-divider></v-divider>
-
-						<v-card-text>{{ movie_info.description }}</v-card-text>
-					</div>
-				</v-expand-transition>
-			</v-card>
+			<player
+				v-bind:app_player_pos="app_player_pos"
+				v-bind:movie_info="movie_info"
+			/>
 		</v-footer>
 	</v-app>
 </template>
 
 <script>
+import Player from "./components/Player.vue";
 import messenger from "./messenger";
 import moment from "moment";
 export default {
+	components: {
+		Player,
+	},
 	data() {
 		return {
 			app_player_pos: {
@@ -202,16 +155,6 @@ export default {
 		messenger_onWSClose() {
 			this.showDisconnect(true);
 		},
-		player_key(id) {
-			console.log("Send key");
-			messenger.emit("player_key", { keyid: id });
-		},
-		player_volume() {
-			console.log("Send volume");
-			messenger.emit("player_volume", {
-				timer_vol: this.app_player_pos.volume,
-			});
-		},
 		player_select_device() {
 			console.log("Send device");
 			this.device_dialog_show = false;
@@ -244,32 +187,15 @@ export default {
 			});
 		},
 	},
-	computed: {
-		sliderPosition: {
-			// getter
-			get: function () {
-				if (
-					this.app_player_pos.current_time >= 0 &&
-					this.app_player_pos.duration > 0
-				) {
-					return parseInt(
-						(this.app_player_pos.current_time * 100) /
-							this.app_player_pos.duration
-					);
-				} else {
-					return "-";
-				}
-			},
-			// setter
-			set: function (newValue) {
-				console.log("Send timer by setter");
-				this.app_player_pos.current_time = newValue;
-				messenger.emit("player_time", {
-					timer_pos: this.app_player_pos.current_time,
-				});
-			},
-		},
+	provide: function () {
+		return {
+			localDate: this.localDate,
+			duration: this.duration,
+			stopAndRecord: this.stopAndRecord
+		};
 	},
+
+
 };
 </script>
 
