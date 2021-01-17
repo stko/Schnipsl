@@ -28,7 +28,7 @@ import defaults
 from classes import MovieInfo
 from messagehandler import Query
 from splthread import SplThread
-
+from jsonstorage import JsonStorage
 # Add the directory containing your module to the Python path (wants absolute paths)
 sys.path.append(os.path.abspath(ScriptPath))
 
@@ -80,20 +80,48 @@ class Kodi:
 			}
 		}
 		response=self.doJsonRPC(payload)
-		print("wo ist die richtige PlayerID??")
 		try:
 			self.cast_info['play']=response['result']=='OK'
 		except:
 			self.cast_info['play']=False
-		self.player_id=1
 		if current_time:
 			time.sleep(3) # in case we have a start position, we need to give the player some time to be sure that update_ status returns data which match to the stream
 		self.update_status()
 		if self.cast_info['play'] and self.supports_seek and current_time>0:
 			self.seek(current_time)
 
+	def isPlayerActive(self):
+		payload ={
+			"jsonrpc": "2.0",
+			"method": "Player.GetActivePlayers",
+			"id": 1
+		}
+		response=self.doJsonRPC(payload)
+		try:
+			for player in response['result']:
+				if player['type']=='video':
+					self.player_id=player['playerid']
+					return True
+		except:
+			pass
+		self.cast_info['duration']=-1
+		self.cast_info['current_time']=-1
+		self.supports_seek=False
+		self.supports_pause=False
+		self.duration=self.cast_info['duration']
+		self.current_time=self.cast_info['current_time']
+		previous_player_state=self.cast_info['play']
+		self.cast_info['play']=False
+		self.cast_info['state_change']=previous_player_state and not self.cast_info['play']
+
+		self.player_id=None
+		return False
+
+
 	def play(self):
 		print('Kodi play')
+		if not self.isPlayerActive():
+			return
 		payload ={
 			"jsonrpc":"2.0",
 			"id":1,
@@ -107,6 +135,8 @@ class Kodi:
 
 	def seek(self, position):
 		print('Kodi seek')
+		if not self.isPlayerActive():
+			return
 		try:
 			duration=position *100/self.duration
 		except: #catch devision py zero
@@ -124,6 +154,8 @@ class Kodi:
 
 	def pause(self):
 		print('Kodi pause')
+		if not self.isPlayerActive():
+			return
 		payload ={
 			"jsonrpc":"2.0",
 			"id":1,
@@ -137,6 +169,8 @@ class Kodi:
 
 	def stop(self):
 		print('Kodi stop')
+		if not self.isPlayerActive():
+			return
 		payload ={
 			"jsonrpc":"2.0",
 			"id":1,
@@ -148,6 +182,8 @@ class Kodi:
 		self.doJsonRPC(payload)
 
 	def update_status(self):
+		if not self.isPlayerActive():
+			return
 		payload ={
 			"jsonrpc":"2.0",
 			"id":1,
@@ -188,7 +224,6 @@ class Kodi:
 				"properties": [
 					"volume"
 				],
-				#"playerid": self.player_id
 			}
 		}
 		response=self.doJsonRPC(payload)
@@ -212,9 +247,11 @@ class Kodi:
 		try:
 			url='http://'+self.host+':8080/jsonrpc'
 			response = requests.post(url, json=payload).json()
-			#print(payload,response)
+			if 'error' in response:
+				print(payload,response)
 			return response
 		except:
+			print('Kodi jsonRPC exception on {0}'.format(self.host))
 			return None
 
 	def time_to_timestamp(self,time_struct):
@@ -238,6 +275,9 @@ class SplPlugin(SplThread):
 		self.devices = {}
 		self.zeroconf = zeroconf.Zeroconf()
 		self.lock=Lock()
+		self.origin_dir = os.path.dirname(__file__)
+		self.config = JsonStorage(os.path.join(
+			self.origin_dir, "config.json"), {'stopdelay': 1.0})
 
 		# at last announce the own plugin
 		super().__init__(modref.message_handler, self)
@@ -269,6 +309,13 @@ class SplPlugin(SplThread):
 			if cast and cast.online:
 				print(repr(cast))
 				cast.stop()
+				# 
+				time.sleep(self.config.read('stopdelay',0))
+			else:
+				if not cast:
+					print("kodi player stop command: Device {0} not found".format(queue_event.data['device_friendly_name']))
+				else:
+					print("kodi player stop command: Device {0} not online".format(queue_event.data['device_friendly_name']))
 
 		if queue_event.type == defaults.DEVICE_PLAY_RESUME:
 			cast = self.get_cast(queue_event.data['device_friendly_name'])
