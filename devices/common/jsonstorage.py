@@ -38,6 +38,8 @@ class JsonStorage:
 	def read(self, key, default=None):
 		''' read value from config, identified by key
 
+			if key does not exist, the key and the default value is added to the config to make the key visible
+			as a preparation for a potential later config editor
 		Args:
 		key (:obj:`str`): lookup index. if key == 'all', it returns the whole config object
 		'''
@@ -46,6 +48,9 @@ class JsonStorage:
 			return self.config
 		if key in self.config:
 			return self.config[key]
+		else:
+			self.config[key]=default
+			self.save()
 		return default
 
 	def write(self, key, value, delay_write=False):
@@ -71,13 +76,17 @@ class JsonStorage:
 				try:
 					json.dump(self.config, outfile, sort_keys=True,
 							indent=4, separators=(',', ': '))
-				except Exception as ex: # json seems to throw an error when try to sort and numeric and string keys are mixed in a dict
-					try:
-						json.dump(self.config, outfile,
-								indent=4, separators=(',', ': '))
-					except Exception as ex2:
-						logger.warning("couldn't write unsorted config file {0}: {1}".format(
-							self.file_name,str(ex2)))
+					return
+				except Exception as ex: 
+					pass
+			# json seems to throw an error when try to sort and numeric and string keys are mixed in a dict, so we try again without sort
+			with open(self.file_name, 'w') as outfile:
+				try:
+					json.dump(self.config, outfile,
+							indent=4, separators=(',', ': '))
+				except Exception as ex2:
+					logger.warning("couldn't write unsorted config file {0}: {1}".format(
+						self.file_name,str(ex2)))
 		except Exception as ex:
 			logger.warning("couldn't write config file {0}: {1}".format(
 				self.file_name,str(ex)))
