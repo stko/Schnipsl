@@ -202,6 +202,7 @@ class SplPlugin(SplThread):
 			if self.all_EPG_Data[provider]['requested']:
 				self.all_EPG_Data[provider]['requested']=False
 				if self.all_EPG_Data[provider]['lastmodified']<actual_time-60*60 or not self.all_EPG_Data[provider]['epg_data']:
+					time.sleep(10) # give the sat receiver some time to recover?!?!?!
 					epg_details = self.get_epg_from_linvdr(
 						provider,self.all_EPG_Data[provider]['url'])
 					if epg_details:
@@ -261,6 +262,24 @@ class SplPlugin(SplThread):
 				if channel_info['channel_epg_name'] == channel_epg_name:
 					return channel_info
 
+	def split_text_by_capital_chars(self,text):
+		'''
+		Tricky: Somehow the text in EPG seems not to have a line seperator ?!?, but it helps to 
+		split the text wherever a capital letter follows a small letter or digit like in 
+		
+		erster SatzZweiter Satz2009Dritter Satz
+
+		which gives
+		erster Satz
+		Zweiter Satz2009
+		Dritter Satz
+		'''
+		pattern = re.compile(r'([^\sA-Z])([A-Z])')
+		# step 1: insert a seperator in between
+		newstring = pattern.sub(r"\1\n\2", text)
+		# step 2: split by that seperator
+		return newstring.split('\n')
+
 	def get_epg_from_linvdr(self, provider,url):
 		# reduce the pids to the ones containing SDT (0x11) and EIT (0x12)
 		print('original URL:',url)
@@ -307,11 +326,11 @@ class SplPlugin(SplThread):
 					start = json_movie['unixTimeBegin']
 					stop = json_movie['unixTimeEnd']
 					if json_movie['title']:
-						title = json_movie['title']+' - '+json_movie['name']
+						title = self.split_text_by_capital_chars(json_movie['title'])[0]
 					else:
 						title = json_movie['name']
-					desc = json_movie['description']
-					category =  ''
+					desc = '\n'.join(self.split_text_by_capital_chars(json_movie['description']))
+					category =  json_movie['name']
 					count += 1
 
 					# we'll use the name of the stream source plugin instead the name of the EPG plugin itself
