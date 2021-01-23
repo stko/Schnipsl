@@ -166,7 +166,10 @@ class SplPlugin(SplThread):
 		if queue_event.type == defaults.MSG_SOCKET_EDIT_QUERY_AVAILABLE_CATEGORIES:
 			available_items = self.modref.message_handler.query(
 				Query(queue_event.user, defaults.QUERY_AVAILABLE_CATEGORIES, queue_event.data, unlimed_nr_of_results=True))
-			available_items.sort()
+			try: # object categories like from EPG can't be sorted
+				available_items.sort()
+			except:
+				pass
 			data = {
 				'select_items': available_items,
 				'select_values': self.filter_select_values(available_items, queue_event.data['select_category_values'])

@@ -26,7 +26,11 @@
 	"player_stop_and_record_dialog_select":"Aufnehmen",
 	"locale_date_format":"DD.MM.YYYY",
 	"locale_date_time_format":"DD.MM.YYYY HH:mm",
-	"locale_time_format":"HH:mm"
+	"locale_time_format":"HH:mm",
+	"category_time_evening":"Abends",
+	"category_time_now":"Jetzt",
+	"category_day_today":"Heute",
+	"category_day_tomorrow":"Morgen"
 }
 
 

@@ -71,7 +71,27 @@ class SplPlugin(SplThread):
 			self.origin_dir, "epgdata.json"), {'epgdata':{}})
 		self.all_EPG_Data = self.epg_storage.read('epgdata')
 		self.providers = set()
-		self.categories = set()
+		# EPG has its own special hardwired categories
+
+		self.categories = [
+			{
+				'text': 'category_day_today',
+				'value': 'day:today'
+			},
+			{
+				'text': 'category_day_tomorrow',
+				'value': 'day:tomorrow'
+			},
+			{
+				'text': 'category_time_now',
+				'value': 'time:now'
+			},
+			{
+				'text': 'category_time_evening',
+				'value': 'time:evening'
+			},
+		]
+
 		self.movies = {}
 		self.timeline = {}
 		self.lock=Lock()
@@ -228,7 +248,8 @@ class SplPlugin(SplThread):
 
 		# refill the internal lists
 		self.providers = set()
-		self.categories = set()
+		# EPG has its own special hardwired categories
+		#self.categories = set()
 		# we'll use the name of the stream source plugin instead the name of the EPG plugin itself
 		# plugin_name = self.plugin_names[0]
 		plugin_name = self.stream_source
@@ -251,7 +272,8 @@ class SplPlugin(SplThread):
 					description=movie_info['description'],
 					url=movie_data['url']
 				)
-				self.categories.add(movie_info['category'])
+				# EPG has its own special hardwired categories
+				#self.categories.add(movie_info['category'])
 		for epg_list in self.timeline.values():
 			epg_list.sort(key=self.get_timestamp)
 
@@ -337,7 +359,8 @@ class SplPlugin(SplThread):
 					# plugin_name = self.plugin_names[0]
 					plugin_name = self.stream_source
 					self.providers.add(provider)
-					self.categories.add(category)
+					# EPG has its own special hardwired categories
+					#self.categories.add(category)
 					new_movie = Movie(
 						source=plugin_name,
 						source_type=defaults.MOVIE_TYPE_STREAM,

@@ -269,7 +269,7 @@ export default {
 				this.query.source_items = data.select_items;
 				this.query.source_values = data.select_values;
 				this.edit_query_available_providers();
-				this.edit_query_available_categories();
+				//this.edit_query_available_categories();
 			}
 			if (type == "edit_query_available_providers_answer") {
 				this.query.provider_items = data.select_items;
@@ -277,6 +277,12 @@ export default {
 				this.edit_query_available_categories();
 			}
 			if (type == "edit_query_available_categories_answer") {
+				// in case we have seperate text and values, we need to localise the text first
+				data.select_items.forEach(element => {
+					if (element.text){
+						element.text=this.$t(element.text)
+					}
+				});
 				this.query.category_items = data.select_items;
 				this.query.category_values = data.select_values;
 			}
