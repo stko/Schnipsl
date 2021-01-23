@@ -214,12 +214,12 @@ class SplPlugin(SplThread):
 				return # don't do any delete action if the last record is just 5 mins ago to give the UI some time to adapt the new movie
 			if record['state'] == record_states.RECORDING_FINISHED or record['state'] == record_states.RECORDING_FAILED:
 				new_uri=record['new_uri']
-				print('Record on disk:',new_uri) 
+				#print('Record on disk:',new_uri) 
 				if not new_uri in valid_movieuri_list:
 					records_to_delete[uri]=record
 		# some debug output
-		for uri in valid_movieuri_list:
-			print('recoder uri:',uri)
+		#for uri in valid_movieuri_list:
+		#	print('recoder uri:',uri)
 		if records_to_delete:
 			# go through the list of records to be deleted
 			for uri,  record in records_to_delete.items():
