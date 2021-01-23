@@ -14,29 +14,10 @@
 			</v-btn>
 		</v-toolbar>
 		<v-tabs grow>
-			<v-tab>	{{ $t("main_templates") }}	</v-tab>
 			<v-tab>	{{ $t("main_streams") }}	</v-tab>
 			<v-tab>	{{ $t("main_records") }}	</v-tab>
+			<v-tab>	{{ $t("main_templates") }}	</v-tab>
 			<v-tab>	{{ $t("main_timers") }}		</v-tab>
-			<v-tab-item>
-			<v-list two-line>
-				<v-list-item v-for="item in movie_list.templates" :key="item.uuid">
-					<v-list-item-avatar>
-						<v-icon :class="[item.iconClass]" v-text="item.icon"></v-icon>
-					</v-list-item-avatar>
-
-					<v-list-item-content @click="nav2Edit(item.uuid, item.query)">
-						<v-list-item-title v-text="item.movie_info.title"></v-list-item-title>
-					</v-list-item-content>
-
-					<v-list-item-action>
-						<v-btn icon @click="share(item.uuid)">
-							<v-icon color="grey lighten-1">mdi-share-variant</v-icon>
-						</v-btn>
-					</v-list-item-action>
-				</v-list-item>
-			</v-list>
-			</v-tab-item>
 			<v-tab-item>
 				<live-card v-for="item in movie_list.streams" :key="item.uuid" :item="item" />
 			</v-tab-item>
@@ -107,6 +88,25 @@
 				</v-list>
 			</v-tab-item>
 			<v-tab-item>
+			<v-list two-line>
+				<v-list-item v-for="item in movie_list.templates" :key="item.uuid">
+					<v-list-item-avatar>
+						<v-icon :class="[item.iconClass]" v-text="item.icon"></v-icon>
+					</v-list-item-avatar>
+
+					<v-list-item-content @click="nav2Edit(item.uuid, item.query)">
+						<v-list-item-title v-text="item.movie_info.title"></v-list-item-title>
+					</v-list-item-content>
+
+					<v-list-item-action>
+						<v-btn icon @click="share(item.uuid)">
+							<v-icon color="grey lighten-1">mdi-share-variant</v-icon>
+						</v-btn>
+					</v-list-item-action>
+				</v-list-item>
+			</v-list>
+			</v-tab-item>
+			<v-tab-item>
 				<v-list two-line >
 					<v-list-item v-for="item in movie_list.timers" :key="item.uuid">
 						<v-list-item-avatar>
@@ -172,7 +172,7 @@
 <script>
 import router from "../router";
 import messenger from "../messenger";
-import moment from "moment";
+import dayjs from "dayjs";
 import LiveCard from "./LiveCard.vue";
 
 export default {
@@ -335,7 +335,7 @@ export default {
 			}
 		},
 		localDateTime(timestamp, locale) {
-			return moment.unix(timestamp).local(true).format(locale);
+			return dayjs.unix(timestamp).format(locale);
 		},
 		duration(secondsValue) {
 			var seconds = parseInt(secondsValue, 10);
@@ -343,9 +343,9 @@ export default {
 				return "";
 			}
 			if (seconds < 3600) {
-				return moment.unix(seconds).format("mm:ss");
+				return dayjs.unix(seconds).format("mm:ss");
 			} else {
-				return moment.unix(seconds).format("HH:mm:ss");
+				return dayjs.unix(seconds).format("HH:mm:ss");
 			}
 		},
 		localMinutes(secondsValue) {
@@ -354,9 +354,9 @@ export default {
 				return "";
 			}
 			if (seconds < 3600) {
-				return moment.unix(seconds).format("mm [min]");
+				return dayjs.unix(seconds).format("mm [min]");
 			} else {
-				return moment.unix(seconds).format("HH:mm");
+				return dayjs.unix(seconds).format("HH:mm");
 			}
 		},
 	},

@@ -177,7 +177,7 @@
 <script>
 import router from "../router";
 import messenger from "../messenger";
-import moment from "moment";
+import dayjs from "dayjs";
 
 export default {
 	name: "Edit",
@@ -320,7 +320,7 @@ export default {
 			});
 		},
 		localDate(timestamp, locale) {
-			return moment.unix(timestamp).local().format(locale);
+			return dayjs.unix(timestamp).local().format(locale);
 		},
 		duration(secondsValue) {
 			var seconds = parseInt(secondsValue, 10);
@@ -328,9 +328,9 @@ export default {
 				return "";
 			}
 			if (seconds < 3600) {
-				return moment.unix(seconds).format("mm:ss");
+				return dayjs.unix(seconds).format("mm:ss");
 			} else {
-				return moment.unix(seconds).format("HH:mm:ss");
+				return dayjs.unix(seconds).format("HH:mm:ss");
 			}
 		},
 	},
