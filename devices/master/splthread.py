@@ -6,7 +6,7 @@ import sys
 import os
 import threading
 from abc import ABCMeta, abstractmethod
-
+import defaults
 
 class SplThread(metaclass=ABCMeta):
 	'''Partly abstract class to implement threading & message handling
@@ -57,3 +57,7 @@ class SplThread(metaclass=ABCMeta):
 		if timeout > 0:
 			self.th.join(timeout)
 		return self.th.isAlive()
+
+	def user_message(self,user,message):
+		self.msg_handler.queue_event(user, defaults.MSG_SOCKET_MSG, {
+				'type': defaults.MSG_SOCKET_APP_USER_MESSAGE, 'config': {'message': message}})

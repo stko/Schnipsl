@@ -23,6 +23,7 @@ MSG_SOCKET_PLAYER_VOLUME = 'player_volume'
 MSG_SOCKET_PLAYER_STOP_AND_RECORD = 'player_stop_and_record'
 MSG_SOCKET_SELECT_PLAYER_DEVICE = 'select_player_device'
 MSG_SOCKET_APP_MOVIE_INFO = 'app_movie_info'
+MSG_SOCKET_APP_USER_MESSAGE = 'app_user_message'
 
 MSG_SOCKET_QUERY_FEASIBLE_DEVICES_ANSWER = 'app_device_info'
 MSG_SOCKET_EDIT_QUERY_AVAILABLE_SOURCES = 'edit_query_available_sources'

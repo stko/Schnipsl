@@ -87,6 +87,7 @@ class SplPlugin(SplThread):
 				# starts to play movie on device
 			print("plays schnipsl {0} on device ".format(
 				queue_event.data['uri']))
+			self.user_message(queue_event.user,'Play request')
 			movie_info_list = self.modref.message_handler.query(
 				Query(queue_event.user, defaults.QUERY_MOVIE_ID, queue_event.data['uri']))
 			if movie_info_list:

@@ -2,9 +2,9 @@
 	<v-app toolbar footer dark>
 		<!-- Provides the application the proper gutter -->
 		<v-main>
-		<v-container>
-			<router-view />
-		</v-container>
+			<v-container>
+				<router-view />
+			</v-container>
 		</v-main>
 		<v-row justify="center">
 			<v-dialog v-model="device_dialog_show" scrollable max-width="300px">
@@ -38,9 +38,15 @@
 					</v-card-actions>
 				</v-card>
 			</v-dialog>
-			<v-dialog v-model="stop_and_record_dialog_show" scrollable max-width="300px">
+			<v-dialog
+				v-model="stop_and_record_dialog_show"
+				scrollable
+				max-width="300px"
+			>
 				<v-card>
-					<v-card-title>{{ $t("player_stop_and_record_dialog_header") }}</v-card-title>
+					<v-card-title>{{
+						$t("player_stop_and_record_dialog_header")
+					}}</v-card-title>
 					<v-divider></v-divider>
 					<v-card-actions>
 						<v-btn
@@ -49,9 +55,12 @@
 							@click="stop_and_record_dialog_show = false"
 							>{{ $t("player_stop_and_record_dialog_cancel") }}</v-btn
 						>
-						<v-btn color="blue darken-1" text @click="stopAndRecord(movie_info.uri)">{{
-							$t("player_stop_and_record_dialog_select")
-						}}</v-btn>
+						<v-btn
+							color="blue darken-1"
+							text
+							@click="stopAndRecord(movie_info.uri)"
+							>{{ $t("player_stop_and_record_dialog_select") }}</v-btn
+						>
 					</v-card-actions>
 				</v-card>
 			</v-dialog>
@@ -59,9 +68,7 @@
 		<v-row justify="center">
 			<v-dialog v-model="offline_dialog_show" max-width="300px">
 				<v-card>
-					<v-card-title>{{
-						$t("main_noconnect")
-					}}</v-card-title>
+					<v-card-title>{{ $t("main_noconnect") }}</v-card-title>
 					<v-divider></v-divider>
 					<v-card-text style="height: 75px">
 						<v-progress-circular
@@ -72,6 +79,16 @@
 				</v-card>
 			</v-dialog>
 		</v-row>
+		<v-snackbar v-model="snackbar">
+			{{ user_message }}
+
+			<template v-slot:action="{ attrs }">
+				<v-btn color="pink" text v-bind="attrs" @click="snackbar = false">
+					Close
+				</v-btn>
+			</template>
+		</v-snackbar>
+
 		<v-footer app>
 			<player
 				v-bind:app_player_pos="app_player_pos"
@@ -84,7 +101,7 @@
 <script>
 import Player from "./components/Player.vue";
 import messenger from "./messenger";
-import moment from "moment";
+import dayjs from "dayjs";
 export default {
 	components: {
 		Player,
@@ -115,6 +132,8 @@ export default {
 			offline_dialog_show: false,
 			stop_and_record_dialog_show: false,
 			show: false,
+			snackbar: false,
+			user_message: "",
 		};
 	},
 	created() {
@@ -133,6 +152,10 @@ export default {
 			}
 			if (type == "app_movie_info") {
 				this.movie_info = data;
+			}
+			if (type == "app_user_message") {
+				this.user_message = data.message;
+				this.snackbar = true;
 			}
 			if (type == "app_device_info") {
 				this.uri = data.movie_uri;
@@ -166,22 +189,22 @@ export default {
 			}
 		},
 		localDate(timestamp, locale) {
-			return moment.unix(timestamp).local().format(locale);
+			return dayjs.unix(timestamp).format(locale);
 		},
 		duration(secondsValue) {
 			var seconds = parseInt(secondsValue, 10);
-			if (!Number.isInteger(seconds )|| seconds < 0) {
+			if (!Number.isInteger(seconds) || seconds < 0) {
 				return "";
 			}
 			if (seconds < 3600) {
-				return moment.unix(seconds).format("mm:ss");
+				return dayjs.unix(seconds).format("mm:ss");
 			} else {
-				return moment.unix(seconds).format("HH:mm:ss");
+				return dayjs.unix(seconds).format("HH:mm:ss");
 			}
 		},
 		stopAndRecord(uri) {
 			console.log("stopAndRecord", uri);
-			this.stop_and_record_dialog_show = false
+			this.stop_and_record_dialog_show = false;
 			messenger.emit("player_stop_and_record", {
 				uri: uri,
 			});
@@ -191,11 +214,9 @@ export default {
 		return {
 			localDate: this.localDate,
 			duration: this.duration,
-			stopAndRecord: this.stopAndRecord
+			stopAndRecord: this.stopAndRecord,
 		};
 	},
-
-
 };
 </script>
 
@@ -220,10 +241,11 @@ export default {
 			color: #42b983;
 		}
 	}
-@font-face {
-  font-family: "Atkinson-Hyperlegible";
-  src: local("Atkinson-Hyperlegible"),
-   url(./fonts/Atkinson-Hyperlegible/Atkinson-Hyperlegible-Regular-102.ttf) format("truetype");
-}
+	@font-face {
+		font-family: "Atkinson-Hyperlegible";
+		src: local("Atkinson-Hyperlegible"),
+			url(./fonts/Atkinson-Hyperlegible/Atkinson-Hyperlegible-Regular-102.ttf)
+				format("truetype");
+	}
 }
 </style>
