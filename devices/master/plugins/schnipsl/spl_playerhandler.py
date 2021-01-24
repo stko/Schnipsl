@@ -236,9 +236,12 @@ class SplPlugin(SplThread):
 			if not player_info.current_time>-1:
 				print('player is not playing, so state is not saved')
 				return
+			player_info_copy=copy.copy(player_info) # we need to send a copy of the player_info as the original is been changed before the message is evaluated
+			if player_info_copy.duration - player_info_copy.current_time < 10: 
+				player_info_copy.current_time=0 # if the movie is finished, set it back on start
 			print('------------------- player_save_state Save State Request -------------')
 			self.modref.message_handler.queue_event(user_name, defaults.PLAYER_SAVE_STATE_REQUEST, {
-				'movie': user_player.movie, 'player_info': copy.copy(player_info)}) # we need to send a copy of the player_info as the original is been changed before the message is evaluated
+				'movie': user_player.movie, 'player_info': player_info_copy}) 
 
 	def refresh_app_movie_info(self, user_name):
 		if user_name in self.players:
@@ -272,7 +275,7 @@ class SplPlugin(SplThread):
 
 	def send_player_status(self, user_name, player_info):
 		self.modref.message_handler.queue_event(user_name, defaults.MSG_SOCKET_MSG, {
-			'type': 'app_player_pos', 'config': player_info.__dict__})
+			'type': defaults.MSG_SOCKET_PLAYER_POSITION, 'config': player_info.__dict__})
 
 	def send_player_devices(self, user, devices, movie_uri):
 		# we set the device info

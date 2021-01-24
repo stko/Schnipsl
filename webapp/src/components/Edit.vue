@@ -326,7 +326,7 @@ export default {
 			});
 		},
 		localDate(timestamp, locale) {
-			return dayjs.unix(timestamp).local().format(locale);
+			return dayjs.unix(timestamp).format(locale);
 		},
 		duration(secondsValue) {
 			var seconds = parseInt(secondsValue, 10);

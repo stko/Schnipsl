@@ -9,4 +9,5 @@ from jsonslicer import JsonSlicer
 with open(sys.argv[1]) as data:
 	for liste in JsonSlicer(data, ('X'), path_mode='map_keys'):
 		print(liste[1][2])
+		print(liste)
 
