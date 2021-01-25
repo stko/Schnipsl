@@ -71,105 +71,107 @@
 				{{ movie_info.description }}
 			</div>
 		</v-expand-transition>
-		<v-dialog v-model="volume_dialog_show" min-width="98vw">
-			<v-card>
-				<v-card-title class="justify-center">{{ $t("player_volume") }}</v-card-title>
-				<v-divider></v-divider>
-				<v-card-text>
-<!--
-						<v-slider
-							v-model="player_pos.volume"
-							prepend-icon="mdi-volume-low"
-							append-icon="mdi-volume-high"
-							@click="player_volume()"
-						></v-slider>
--->
-						<round-slider
-							v-model="volume"
-							start-angle="315"
-							end-angle="+270"
-							line-cap="round"
-							:change="player_volume()"
-						/>
-				</v-card-text>
-			</v-card>
-		</v-dialog>
-		<v-dialog v-model="position_dialog_show"  min-width="98vw">
-			<v-card>
-				<v-card-title class="justify-center">{{ $t("player_position") }}</v-card-title>
-				<v-divider></v-divider>
-				<v-card-text>
-<!-- 
-					{{ duration(player_pos.current_time) }}
-					<v-slider v-model="sliderPosition" append-icon="mdi-timer"></v-slider>
-					{{ duration(movie_info.duration - player_pos.current_time) }}
- -->
-						<round-slider
-							v-model="sliderPosition"
-							start-angle="315"
-							end-angle="+270"
-							line-cap="round"
-						/>
-				</v-card-text>
-			</v-card>
-		</v-dialog>
-		<v-dialog v-model="device_dialog_show" scrollable max-width="300px">
-			<v-card>
-				<v-card-title>{{
-					$t("player_select_device_dialog_header")
-				}}</v-card-title>
-				<v-divider></v-divider>
-				<v-card-text style="height: 300px">
-					<v-radio-group v-model="device_info.actual_device" column>
-						<v-radio
-							v-for="item in device_info.devices"
-							:value="item"
-							:label="item"
-							:key="item"
-							:checked="(item = device_info.actual_device)"
-						></v-radio>
-					</v-radio-group>
-				</v-card-text>
-				<v-divider></v-divider>
-				<v-card-actions>
-					<v-btn
-						color="blue darken-1"
-						text
-						@click="device_dialog_show = false"
-						>{{ $t("player_select_device_dialog_cancel") }}</v-btn
-					>
-					<v-btn color="blue darken-1" text @click="player_select_device()">{{
-						$t("player_select_device_dialog_select")
-					}}</v-btn>
-				</v-card-actions>
-			</v-card>
-		</v-dialog>
-		<v-dialog
-			v-model="stop_and_record_dialog_show"
-			scrollable
-			max-width="300px"
-		>
-			<v-card>
-				<v-card-title>{{
-					$t("player_stop_and_record_dialog_header")
-				}}</v-card-title>
-				<v-divider></v-divider>
-				<v-card-actions>
-					<v-btn
-						color="blue darken-1"
-						text
-						@click="stop_and_record_dialog_show = false"
-						>{{ $t("player_stop_and_record_dialog_cancel") }}</v-btn
-					>
-					<v-btn
-						color="blue darken-1"
-						text
-						@click="stopAndRecord(movie_info.uri)"
-						>{{ $t("player_stop_and_record_dialog_select") }}</v-btn
-					>
-				</v-card-actions>
-			</v-card>
-		</v-dialog>
+		<div id="dialogs">
+			<v-dialog v-model="volume_dialog_show" min-width="98vw">
+				<v-card>
+					<v-card-title class="justify-center">{{ $t("player_volume") }}</v-card-title>
+					<v-divider></v-divider>
+					<v-card-text>
+	<!--
+							<v-slider
+								v-model="player_pos.volume"
+								prepend-icon="mdi-volume-low"
+								append-icon="mdi-volume-high"
+								@click="player_volume()"
+							></v-slider>
+	-->
+							<round-slider
+								v-model="volume"
+								start-angle="315"
+								end-angle="+270"
+								line-cap="round"
+								:drag="player_volume()"
+							/>
+					</v-card-text>
+				</v-card>
+			</v-dialog>
+			<v-dialog v-model="position_dialog_show"  min-width="98vw">
+				<v-card>
+					<v-card-title class="justify-center">{{ $t("player_position") }}</v-card-title>
+					<v-divider></v-divider>
+					<v-card-text>
+	<!-- 
+						{{ duration(player_pos.current_time) }}
+						<v-slider v-model="sliderPosition" append-icon="mdi-timer"></v-slider>
+						{{ duration(movie_info.duration - player_pos.current_time) }}
+	-->
+							<round-slider
+								v-model="sliderPosition"
+								start-angle="315"
+								end-angle="+270"
+								line-cap="round"
+							/>
+					</v-card-text>
+				</v-card>
+			</v-dialog>
+			<v-dialog v-model="device_dialog_show" scrollable max-width="300px">
+				<v-card>
+					<v-card-title>{{
+						$t("player_select_device_dialog_header")
+					}}</v-card-title>
+					<v-divider></v-divider>
+					<v-card-text style="height: 300px">
+						<v-radio-group v-model="device_info.actual_device" column>
+							<v-radio
+								v-for="item in device_info.devices"
+								:value="item"
+								:label="item"
+								:key="item"
+								:checked="(item = device_info.actual_device)"
+							></v-radio>
+						</v-radio-group>
+					</v-card-text>
+					<v-divider></v-divider>
+					<v-card-actions>
+						<v-btn
+							color="blue darken-1"
+							text
+							@click="device_dialog_show = false"
+							>{{ $t("player_select_device_dialog_cancel") }}</v-btn
+						>
+						<v-btn color="blue darken-1" text @click="player_select_device()">{{
+							$t("player_select_device_dialog_select")
+						}}</v-btn>
+					</v-card-actions>
+				</v-card>
+			</v-dialog>
+			<v-dialog
+				v-model="stop_and_record_dialog_show"
+				scrollable
+				max-width="300px"
+			>
+				<v-card>
+					<v-card-title>{{
+						$t("player_stop_and_record_dialog_header")
+					}}</v-card-title>
+					<v-divider></v-divider>
+					<v-card-actions>
+						<v-btn
+							color="blue darken-1"
+							text
+							@click="stop_and_record_dialog_show = false"
+							>{{ $t("player_stop_and_record_dialog_cancel") }}</v-btn
+						>
+						<v-btn
+							color="blue darken-1"
+							text
+							@click="stopAndRecord(movie_info.uri)"
+							>{{ $t("player_stop_and_record_dialog_select") }}</v-btn
+						>
+					</v-card-actions>
+				</v-card>
+			</v-dialog>
+		</div>
 	</div>
 </template>
 <script>
@@ -190,6 +192,7 @@ export default {
 				duration: 120,
 				volume: 3,
 			},
+			volume_old: 0,
 			volume: 0,
 			movie_info: {
 				title: "Titel",
@@ -244,10 +247,14 @@ export default {
 			messenger.emit("player_key", { keyid: id });
 		},
 		player_volume() {
+			if (this.volume_old==this.volume){ // for unknown reason this routine is triggered all the time- so we try to supress the effect here
+				return
+			}
 			console.log("Send volume");
 			messenger.emit("player_volume", {
 				timer_vol: this.volume,
 			});
+			this.volume_old=this.volume
 		},
 		player_select_device() {
 			console.log("Send device");
@@ -313,7 +320,7 @@ export default {
 <style scoped>
 .schnipsl-player {
 	display: grid;
-	grid-template-columns: repeat(9, 11vw);
+	grid-template-columns: repeat(9, 9vw);
 	grid-template-rows: repeat(5, min-content);
 	gap: 0px 0px;
 	grid-template-areas:
@@ -321,7 +328,8 @@ export default {
 		"series series series series series series series series series"
 		"provider provider day day time time duration duration show"
 		"volume device prev minus10 play plus10 stop bed position"
-		"description description description description description description description description description";
+		"description description description description description description description description description"
+		"dialogs dialogs dialogs dialogs dialogs dialogs dialogs dialogs dialogs";
 	background: grey;
 	border-radius: 10px;
 	padding: 5px;
