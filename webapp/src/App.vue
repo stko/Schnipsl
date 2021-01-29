@@ -3,14 +3,14 @@
 		<!-- Provides the application the proper gutter -->
 		<v-main>
 			<v-container>
-				<router-view />
+				<router-view/>
 			</v-container>
 		</v-main>
 		<v-row justify="center">
 
 		</v-row>
 		<v-row justify="center">
-			<v-dialog v-model="offline_dialog_show" max-width="300px">
+			<v-dialog dark v-model="offline_dialog_show" max-width="300px">
 			<!--<v-dialog  max-width="300px"> -->
 				<v-card>
 					<v-card-title>{{ $t("main_noconnect") }}</v-card-title>
@@ -34,7 +34,7 @@
 			</template>
 		</v-snackbar>
 
-		<v-footer app>
+		<v-footer app dark>
 			<player/>
 		</v-footer>
 	</v-app>
@@ -52,7 +52,6 @@ export default {
 
 			uri: null,
 			offline_dialog_show: false,
-			show: false,
 			snackbar: false,
 			user_message: "",
 		};

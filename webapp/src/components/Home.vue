@@ -1,8 +1,8 @@
 // https://stackoverflow.com/questions/49501873/css-grid-items-based-on-minimum-width-and-percentage
 
 <template>
-	<v-card>
-		<v-toolbar color="light-blue" dark>
+	<v-card dark>
+		<v-toolbar>
 			<v-app-bar-nav-icon @click="nav2Set()"></v-app-bar-nav-icon>
 
 			<v-toolbar-title>{{ $t("main_title") }}</v-toolbar-title>
@@ -22,7 +22,8 @@
 				<live-card v-for="item in movie_list.streams" :key="item.uuid" :item="item" />
 			</v-tab-item>
 			<v-tab-item>
-				<v-list two-line>
+<!--
+					<v-list two-line>
 					<v-list-item v-for="item in movie_list.records" :key="item.uuid">
 						<v-list-item-avatar>
 							<v-icon :class="[item.iconClass]" v-text="item.icon"></v-icon>
@@ -86,6 +87,8 @@
 						</v-list-item-action>
 					</v-list-item>
 				</v-list>
+-->
+				<record-card v-for="item in movie_list.records" :key="item.uuid" :item="item" />
 			</v-tab-item>
 			<v-tab-item>
 			<v-list two-line>
@@ -107,7 +110,8 @@
 			</v-list>
 			</v-tab-item>
 			<v-tab-item>
-				<v-list two-line >
+<!--
+					<v-list two-line >
 					<v-list-item v-for="item in movie_list.timers" :key="item.uuid">
 						<v-list-item-avatar>
 							<v-icon :class="[item.iconClass]" v-text="item.icon"></v-icon>
@@ -163,7 +167,9 @@
 						</v-list-item-action>
 					</v-list-item>
 				</v-list>
-			</v-tab-item>
+ -->
+					<timer-card v-for="item in movie_list.timers" :key="item.uuid" :item="item" />
+		</v-tab-item>
 		</v-tabs>
 	</v-card>
 </template>
@@ -174,11 +180,15 @@ import router from "../router";
 import messenger from "../messenger";
 import dayjs from "dayjs";
 import LiveCard from "./LiveCard.vue";
+import RecordCard from "./RecordCard.vue";
+import TimerCard from "./TimerCard.vue";
 
 export default {
 	name: "Schnipsl",
 	components: {
 		LiveCard,
+		RecordCard,
+		TimerCard,
 	},
 	title() {
 		return `${this.name}`;

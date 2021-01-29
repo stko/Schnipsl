@@ -7,6 +7,7 @@ import router from './router'
 import VueI18n from 'vue-i18n'
 import messages from './lang'
 import './registerServiceWorker'
+import './assets/reset.css'
 
 Vue.config.productionTip = false
 
