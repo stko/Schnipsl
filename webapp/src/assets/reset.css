@@ -1,0 +1,28 @@
+/*reset.css*/
+/* RESETS */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+*:focus {
+  outline: 3px dashed #228bec;
+}
+
+body {
+  width: 100%;
+  max-width: 68rem;
+  margin: 0 auto;
+
+  background-color: #292727;
+  color: #4d4d4d;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-font-smoothing: antialiased;
+}
+@media screen and (min-width: 620px) {
+  body {
+    font-size: 1.9rem;
+    line-height: 1.31579;
+  }
+}
+/*END RESETS*/

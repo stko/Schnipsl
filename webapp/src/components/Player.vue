@@ -18,7 +18,7 @@
 		</div>
 		<div id="volume">
 			<v-btn icon class="mx-4" @click="volume_dialog_show = true">
-				<v-icon size="24px">mdi-volume-low</v-icon>
+				<v-icon size="24px">mdi-volume-high</v-icon>
 			</v-btn>
 		</div>
 		<div id="device">
@@ -63,7 +63,7 @@
 		</div>
 		<div id="position">
 			<v-btn icon class="mx-4" @click="position_dialog_show = true">
-				<v-icon size="24px">mdi-timer</v-icon>
+				<v-icon size="24px">mdi-progress-clock</v-icon>
 			</v-btn>
 		</div>
 		<v-expand-transition>
@@ -72,7 +72,7 @@
 			</div>
 		</v-expand-transition>
 		<div id="dialogs">
-			<v-dialog v-model="volume_dialog_show" min-width="98vw">
+			<v-dialog dark v-model="volume_dialog_show" min-width="98vw">
 				<v-card>
 					<v-card-title class="justify-center">{{ $t("player_volume") }}</v-card-title>
 					<v-divider></v-divider>
@@ -95,7 +95,7 @@
 					</v-card-text>
 				</v-card>
 			</v-dialog>
-			<v-dialog v-model="position_dialog_show"  min-width="98vw">
+			<v-dialog dark v-model="position_dialog_show"  min-width="98vw">
 				<v-card>
 					<v-card-title class="justify-center">{{ $t("player_position") }}</v-card-title>
 					<v-divider></v-divider>
@@ -110,11 +110,13 @@
 								start-angle="315"
 								end-angle="+270"
 								line-cap="round"
+								:max=player_pos.duration
+								:tooltipFormat="formatPosition"
 							/>
 					</v-card-text>
 				</v-card>
 			</v-dialog>
-			<v-dialog v-model="device_dialog_show" scrollable max-width="300px">
+			<v-dialog dark v-model="device_dialog_show" scrollable max-width="300px">
 				<v-card>
 					<v-card-title>{{
 						$t("player_select_device_dialog_header")
@@ -145,7 +147,7 @@
 					</v-card-actions>
 				</v-card>
 			</v-dialog>
-			<v-dialog
+			<v-dialog dark
 				v-model="stop_and_record_dialog_show"
 				scrollable
 				max-width="300px"
@@ -255,6 +257,9 @@ export default {
 				timer_vol: this.volume,
 			});
 			this.volume_old=this.volume
+		},
+		formatPosition(){
+			return this.duration(this.player_pos.current_time)
 		},
 		player_select_device() {
 			console.log("Send device");
@@ -454,5 +459,8 @@ export default {
 	background: grey;
 	color: white;
 	grid-area: description;
+}
+.v-icon {
+	color:rgb(13, 65, 207)
 }
 </style>

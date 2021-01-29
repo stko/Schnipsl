@@ -1,6 +1,6 @@
 <!-- https://blog.kulturbanause.de/2013/12/css-grid-layout-module/ -->
 <template>
-<div class="schnipsl-livecard">
+<div class="schnipsl-timercard">
 	<div id="marker"></div> 
 				<div id="name" @click="nav2Play(item.movie_info.uri)">{{
 					item.movie_info.title
@@ -64,7 +64,7 @@
 </template>
 <script>
 export default {
-	name: "livecard",
+	name: "timercard",
 
 	props: {
 		item: Object
@@ -88,16 +88,15 @@ export default {
 </script>
 
 <style scoped>
-.schnipsl-livecard {
+.schnipsl-timercard {
   display: grid;
   grid-template-columns: 10px 1fr 1fr 1fr 1fr 40px;
-  grid-template-rows: repeat(5, min-content);
+  grid-template-rows: repeat(4, min-content);
   gap: 0px 0px;
 	grid-template-areas:  
 	"marker name name name name edit" 
 	"marker series series series series share" 
 	"marker provider day time duration record" 
-	"marker next next next next next" 
 	"marker viewed viewed viewed  viewed show" 
 	"marker description description description description description" 
   ; 
@@ -108,7 +107,7 @@ export default {
   }
 
 #marker { 
-  background:rgb(255, 0, 0); 
+  background:rgb(10, 211, 70); 
   grid-area: marker;  
   border-radius: 5px;
 } 
@@ -159,15 +158,7 @@ export default {
   font-weight: bold;
   grid-area: duration;
 }
-#next { 
-  background:grey; 
-  color: white; 
-  grid-area: next;
-  font-family: "Atkinson-Hyperlegible", Helvetica, Arial;
-  font-size:100%;
-  text-align:left;
-  padding-left: 5px;
-} 
+
 
 #viewed {
   background:grey; 
