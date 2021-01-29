@@ -67,7 +67,7 @@ class SplPlugin(SplThread):
 		if queue_event.type == '_join':
 			# update the App Play info
 			user_name = queue_event.user
-			self.refresh_app_movie_info(user_name)
+			self.refresh_player_movie_info(user_name)
 
 		if queue_event.type == defaults.PLAYER_PLAY_REQUEST or queue_event.type == defaults.PLAYER_PLAY_REQUEST_WITHOUT_DEVICE:
 			movie = queue_event.data['movie']
@@ -116,7 +116,7 @@ class SplPlugin(SplThread):
 					user_player.uri.split(':')[:2])
 				short_movie_uri = ':'.join(uri.split(':')[:2])
 				if short_movie_uri == short_search_movie_uri:
-					self.send_app_movie_info(user_name, None, movie_info)
+					self.send_player_movie_info(user_name, None, movie_info)
 
 		return queue_event
 
@@ -137,11 +137,11 @@ class SplPlugin(SplThread):
 		})()
 		self.modref.message_handler.queue_event(None, defaults.DEVICE_PLAY_REQUEST, {
 			'movie_url': movie.url, 'current_time': current_time, 'movie_mime_type': 'video/mp4', 'device_friendly_name': device_friendly_name})
-		self.send_app_movie_info(user, movie, movie_info)
+		self.send_player_movie_info(user, movie, movie_info)
 		print('Start play for {0} {1} {2} {3}'.format(
 			user, device_friendly_name, uri, movie.url))
 
-	def send_app_movie_info(self, user_name, movie, movie_info=None):
+	def send_player_movie_info(self, user_name, movie, movie_info=None):
 		if not movie_info:
 			movie_info = {
 				'title': movie.title,
@@ -153,7 +153,7 @@ class SplPlugin(SplThread):
 				'description': movie.description
 			}
 		self.modref.message_handler.queue_event(user_name, defaults.MSG_SOCKET_MSG, {
-			'type': defaults.MSG_SOCKET_APP_MOVIE_INFO, 'config': movie_info})
+			'type': defaults.MSG_SOCKET_PLAYER_MOVIE_INFO, 'config': movie_info})
 
 	def pause_play(self, user, device_friendly_name):
 		self.modref.message_handler.queue_event(None, defaults.DEVICE_PLAY_PAUSE, {
@@ -243,11 +243,11 @@ class SplPlugin(SplThread):
 			self.modref.message_handler.queue_event(user_name, defaults.PLAYER_SAVE_STATE_REQUEST, {
 				'movie': user_player.movie, 'player_info': player_info_copy}) 
 
-	def refresh_app_movie_info(self, user_name):
+	def refresh_player_movie_info(self, user_name):
 		if user_name in self.players:
 			user_player = self.players[user_name]
 			movie = user_player.movie
-			self.send_app_movie_info(user_name, movie)
+			self.send_player_movie_info(user_name, movie)
 
 	def handle_device_play_status(self, queue_event):
 		try:
