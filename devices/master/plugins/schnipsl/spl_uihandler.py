@@ -454,11 +454,11 @@ class SplPlugin(SplThread):
 		self.modref.message_handler.queue_event(user_name, defaults.MSG_SOCKET_MSG, {
 			'type': defaults.MSG_SOCKET_HOME_MOVIE_INFO_UPDATE, 'config': {'uuid': movie_list_uuid, 'current_time': current_time, 'movie_info': movie_list_item['movie_info']}})
 
-	def update_live_movie_clip(self, user_name, movie_list_uuid, live_music_info):
-		current_time = live_music_info['duration'] - \
-			int(time.time())+int(live_music_info['timestamp'])
+	def update_live_movie_clip(self, user_name, movie_list_uuid, live_movie_info):
+		current_time = live_movie_info['duration'] - \
+			int(time.time())+int(live_movie_info['timestamp'])
 		self.modref.message_handler.queue_event(user_name, defaults.MSG_SOCKET_MSG, {
-			'type': defaults.MSG_SOCKET_HOME_MOVIE_INFO_UPDATE, 'config': {'uuid': movie_list_uuid, 'current_time': current_time, 'movie_info': live_music_info}})
+			'type': defaults.MSG_SOCKET_HOME_MOVIE_INFO_UPDATE, 'config': {'uuid': movie_list_uuid, 'current_time': current_time, 'movie_info': live_movie_info}})
 
 	def send_home_movie_list(self, original_queue_event):
 		#new_event = copy.copy(original_queue_event)

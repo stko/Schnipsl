@@ -73,38 +73,6 @@
 		<v-divider></v-divider>
 		<v-list>
 			<v-list-item v-for="movie_info in movie_info_list" :key="movie_info.uri">
-				<!-- 			
-				<v-card class="mx-auto" max-width="344">
-					<v-card-title @click="requestPlay(movie_info.uri)">{{movie_info.title +' • '+ movie_info.category}}</v-card-title>
-
-					<v-card-subtitle>{{movie_info.provider +' • '+ movie_info.timestamp +' • '+ movie_info.duration +' • '+ movie_info.current_time}}</v-card-subtitle>
-
-					<v-card-actions>
-						<v-btn icon class="mx-4">
-							<v-icon size="24px">mdi-record</v-icon>
-						</v-btn>
-
-						<v-spacer></v-spacer>
-
-						<v-btn icon @click="movie_info.description_show = !movie_info.description_show">
-							<v-icon>{{ movie_info.description_show ? 'mdi-chevron-up' : 'mdi-chevron-down' }}</v-icon>
-						</v-btn>
-					</v-card-actions>
-
-					<v-expand-transition>
-						<div v-show="movie_info.description_show">
-							<v-divider></v-divider>
-
-							<v-card-text>{{movie_info.description}}</v-card-text>
-						</div>
-					</v-expand-transition>
-				</v-card>
- -->
-
-				<!-- 				<v-list-item-avatar>
-					<v-icon :class="[item.iconClass]" v-text="item.icon"></v-icon>
-				</v-list-item-avatar>
- -->
 				<v-list-item-content v-on="movie_info.streamable ? { click : () => requestPlay(movie_info.uri) } : {}" >
 					<v-list-item-title
 						v-text="movie_info.title + ' • ' + movie_info.category"
@@ -152,11 +120,6 @@
 				<v-card>
 					<v-card-title>{{ $t("edit_delete_dialog_header") }}</v-card-title>
 					<v-divider></v-divider>
-					<!-- 						<v-card-text style="height: 300px;">
-
-						</v-card-text>
-						<v-divider></v-divider>
- -->
 					<v-card-actions>
 						<v-btn
 							color="blue darken-1"
