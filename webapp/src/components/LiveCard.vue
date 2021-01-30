@@ -49,6 +49,7 @@
 				
 					<!-- <progress id="viewed" :value="progress(item.current_time,item.movie_info.duration)" max="100">{{progress(item.current_time,item.movie_info.duration)}} %</progress> -->
 				<div id="viewed">
+					<!-- the live movies have a special duration value, which tells how many percent of the live movie has already passed -->
 					<div :style="{width: item.movie_info.duration+'%'}"></div>
 				</div>
 				
@@ -80,7 +81,8 @@ export default {
 			'share',
 			'localDateTime',
 			'duration',
-			'localMinutes'],
+			'localMinutes',
+			'progress'],
 	methods:{
 	}
 	

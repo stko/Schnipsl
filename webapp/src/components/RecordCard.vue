@@ -49,7 +49,7 @@
 				
 					<!-- <progress id="viewed" :value="progress(item.current_time,item.movie_info.duration)" max="100">{{progress(item.current_time,item.movie_info.duration)}} %</progress> -->
 				<div id="viewed">
-					<div :style="{width: item.movie_info.duration+'%'}"></div>
+					<div :style="{width: progress(item.current_time,item.movie_info.duration)+'%'}"></div>
 				</div>
 				
 				<!-- <div id="description"> -->
@@ -80,7 +80,8 @@ export default {
 			'share',
 			'localDateTime',
 			'duration',
-			'localMinutes'],
+			'localMinutes',
+			'progress'],
 	methods:{
 	}
 	

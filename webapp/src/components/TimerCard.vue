@@ -31,6 +31,7 @@
 						<v-icon color="orange darken-1">mdi-share-variant</v-icon>
 					</v-btn></div
 				>
+				<!-- A timer card does not have a record button, as it is already a record request
 				<div id="record">
 					<v-btn
 						icon
@@ -40,6 +41,7 @@
 						<v-icon color="red darken-1">mdi-record</v-icon>
 					</v-btn>
 				</div>
+				--->
 				<div id="show">
 					<v-btn icon @click="description_show = !description_show">
 						<v-icon color="orange darken-1">{{ description_show ? 'mdi-chevron-up' : 'mdi-chevron-down' }}</v-icon>
@@ -47,11 +49,11 @@
 
 				</div>
 				
-					<!-- <progress id="viewed" :value="progress(item.current_time,item.movie_info.duration)" max="100">{{progress(item.current_time,item.movie_info.duration)}} %</progress> -->
+					<!-- A timer card does not have a viewed bar 
 				<div id="viewed">
-					<div :style="{width: item.movie_info.duration+'%'}"></div>
+					<div :style="{width: progress(item.current_time,item.movie_info.duration)+'%'}"></div>
 				</div>
-				
+				-->
 				<!-- <div id="description"> -->
 					<v-expand-transition>
 						<div id="description" v-show="description_show">
@@ -80,7 +82,8 @@ export default {
 			'share',
 			'localDateTime',
 			'duration',
-			'localMinutes'],
+			'localMinutes',
+			'progress'],
 	methods:{
 	}
 	
@@ -96,8 +99,7 @@ export default {
 	grid-template-areas:  
 	"marker name name name name edit" 
 	"marker series series series series share" 
-	"marker provider day time duration record" 
-	"marker viewed viewed viewed  viewed show" 
+	"marker provider day time duration show" 
 	"marker description description description description description" 
   ; 
   background:grey; 
@@ -160,10 +162,9 @@ export default {
 }
 
 
-#viewed {
+/* A timer card does not have a viewed bar 
+ #viewed {
   background:grey; 
-  /*border-radius: 13px;*/
-  /* (height of inner div) / 2 + padding */
   padding: 3px;
   grid-area: viewed;
 }
@@ -171,11 +172,10 @@ export default {
 #viewed>div {
   background-color: orange;
   width: 40%;
-  /* Adjust with JavaScript */
   height: 20px;
   border-radius: 10px;
 }
-
+ */
 
 #edit { 
   background:grey; 
@@ -187,11 +187,13 @@ export default {
   color: white; 
   grid-area: share;
 } 
+/* A timer card does not have a record button, as it is aready a record
 #record { 
   background:grey; 
   color: white; 
   grid-area: record;
 } 
+*/
 #show { 
   background:grey; 
   color: white;

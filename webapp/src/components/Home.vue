@@ -91,7 +91,8 @@
 				<record-card v-for="item in movie_list.records" :key="item.uuid" :item="item" />
 			</v-tab-item>
 			<v-tab-item>
-			<v-list two-line>
+<!--
+				<v-list two-line>
 				<v-list-item v-for="item in movie_list.templates" :key="item.uuid">
 					<v-list-item-avatar>
 						<v-icon :class="[item.iconClass]" v-text="item.icon"></v-icon>
@@ -108,6 +109,8 @@
 					</v-list-item-action>
 				</v-list-item>
 			</v-list>
+-->
+				<quick-search-card v-for="item in movie_list.templates" :key="item.uuid" :item="item" />
 			</v-tab-item>
 			<v-tab-item>
 <!--
@@ -182,6 +185,7 @@ import dayjs from "dayjs";
 import LiveCard from "./LiveCard.vue";
 import RecordCard from "./RecordCard.vue";
 import TimerCard from "./TimerCard.vue";
+import QuickSearchCard from "./QuickSearchCard.vue";
 
 export default {
 	name: "Schnipsl",
@@ -189,6 +193,7 @@ export default {
 		LiveCard,
 		RecordCard,
 		TimerCard,
+		QuickSearchCard
 	},
 	title() {
 		return `${this.name}`;
@@ -369,6 +374,10 @@ export default {
 				return dayjs.unix(seconds).format("HH:mm");
 			}
 		},
+		progress(viewed, duration) {
+			console.log("progress",viewed,duration)
+			return viewed*100 / duration
+		}
 	},
 	provide: function () {
 		return {
@@ -379,6 +388,7 @@ export default {
 			localDateTime: this.localDateTime,
 			duration: this.duration,
 			localMinutes: this.localMinutes,
+			progress: this.progress
 		};
 	},
 };
