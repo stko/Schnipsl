@@ -148,8 +148,8 @@ export default {
 		nav2Set() {
 			router.push({ name: "Settings" });
 		},
-		nav2Edit(uuid, query, item) {
-			console.log("click for edit", item, query);
+		nav2Edit(uuid, query) {
+			console.log("click for edit", uuid, query);
 			router.push({ name: "Edit", params: { uuid: uuid, query: query } });
 		},
 		nav2Play(uri) {

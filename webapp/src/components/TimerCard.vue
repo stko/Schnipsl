@@ -22,7 +22,7 @@
 				<div id="duration">{{ duration(item.movie_info.duration) }}</div>
 				<div id="next">{{ item.movie_info.next_title }}</div>
 				<div id="edit"
-					><v-btn icon @click="nav2Edit(item.uuid, item.query, item)">
+					><v-btn icon @click="nav2Edit(item.uuid, item.query)">
 						<v-icon color="orange darken-1">mdi-pencil</v-icon>
 					</v-btn></div
 				>

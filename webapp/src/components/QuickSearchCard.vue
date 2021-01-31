@@ -2,7 +2,7 @@
 <template>
 <div class="schnipsl-quicksearchcard">
 	<div id="marker"></div> 
-				<div id="name" @click="nav2Edit(item.movie_info.uri)">{{
+				<div id="name" @click="nav2Edit(item.uuid, item.query)">{{
 					item.movie_info.title
 				}}</div>
 				<div id="share">

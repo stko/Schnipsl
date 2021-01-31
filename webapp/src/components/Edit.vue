@@ -12,12 +12,20 @@
 			</v-toolbar-items>
 		</v-toolbar>
 		{{ $t("edit_select_header") }}
-		<v-col cols="12">
+		<v-col cols="13">
 			<v-form ref="edit_select">
 				<v-text-field
 					v-model="query.name"
 					:label="$t('edit_select_name')"
 				></v-text-field>
+				<v-switch
+					v-model="query.recording"
+					:label="$t('edit_select_recording')"
+					color="orange"
+					value="True"
+					hide-details
+				></v-switch>
+				<v-divider/>
 				<v-autocomplete
 					v-model="query.source_values"
 					:items="query.source_items"
