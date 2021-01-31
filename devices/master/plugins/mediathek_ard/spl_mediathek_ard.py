@@ -9,8 +9,12 @@ import threading
 import ssl
 import json
 from base64 import b64encode
+from threading import Timer , Lock
 import argparse
 import time
+import datetime
+import calendar
+import subprocess
 import copy
 from io import StringIO
 import threading
@@ -18,7 +22,7 @@ from pprint import pprint
 import lzma
 import time
 import urllib
-from urllib.request import urlopen,urlretrieve
+from urllib.request import urlopen,urlretrieve,  urlparse, urlunparse
 from xml.etree.ElementTree import parse
 import re
 
@@ -28,23 +32,26 @@ import re
 # sudo pip3 install jsonslicer
 
 from jsonslicer import JsonSlicer
+# Add the directory containing your module to the Python path (wants absolute paths)
+ScriptPath = os.path.realpath(os.path.join(
+	os.path.dirname(__file__), "../../../common"))
+sys.path.append(os.path.abspath(ScriptPath))
 
 ScriptPath = os.path.realpath(os.path.join(
-	os.path.dirname(__file__), "../common"))
-
+	os.path.dirname(__file__), "../.."))
 
 # Add the directory containing your module to the Python path (wants absolute paths)
 sys.path.append(os.path.abspath(ScriptPath))
 # own local modules
 
+from jsonstorage import JsonStorage
 from messagehandler import Query
 from classes import MovieInfo
 from classes import Movie
 import defaults
-from splthread import SplThread
+from epgprovider import EPGProvider
 
-
-class SplPlugin(SplThread):
+class SplPlugin(EPGProvider):
 	plugin_id='mediathek_ard'
 	plugin_names=['Öffi Mediathek','LiveTV']
 
@@ -54,16 +61,19 @@ class SplPlugin(SplThread):
 		self.modref = modref
 
 		# do the plugin specific initialisation first
-		self.providers=set()
-		self.movies={}
+		self.origin_dir = os.path.dirname(__file__)
+
 
 		# at last announce the own plugin
-		super().__init__(modref.message_handler, self)
+		super().__init__(modref)
 		modref.message_handler.add_event_handler(
 		self.plugin_id, 0, self.event_listener)
 		modref.message_handler.add_query_handler(
 		self.plugin_id, 0, self.query_handler)
-		self.runFlag = True
+
+
+		# plugin specific stuff
+
 
 	def event_listener(self, queue_event):
 		''' react on events
@@ -75,7 +85,7 @@ class SplPlugin(SplThread):
 	def query_handler(self, queue_event, max_result_count):
 		''' answers with list[] of results
 		'''
-		# print("mediathek_ard query handler", queue_event.type, queue_event.user, max_result_count)
+		# print("query handler", self.plugin_id, queue_event.type,  queue_event.user, max_result_count)
 		if queue_event.type == defaults.QUERY_AVAILABLE_SOURCES:
 			return self.plugin_names
 		if queue_event.type == defaults.QUERY_AVAILABLE_PROVIDERS:
@@ -90,8 +100,17 @@ class SplPlugin(SplThread):
 							return res # maximal number of results reached
 			return res
 		if queue_event.type == defaults.QUERY_AVAILABLE_CATEGORIES:
-			# just do nothing, the mediathek does not have categories
-			pass
+			res = []
+			for plugin_name in self.plugin_names:
+				# this plugin is one of the wanted
+				if plugin_name in queue_event.params['select_source_values']:
+					for category in self.categories:
+						if max_result_count > 0:
+							res.append(category)
+							max_result_count -= 1
+						else:
+							return res  # maximal number of results reached
+			return res
 		if queue_event.type == defaults.QUERY_MOVIE_ID:
 			elements=queue_event.params.split(':')
 			try:
@@ -105,45 +124,67 @@ class SplPlugin(SplThread):
 			description_regexs=[re.compile (r'\b{}\b'.format(description),re.IGNORECASE) for description in queue_event.params['select_description'].split()]
 			for plugin_name in self.plugin_names:
 				if plugin_name in queue_event.params['select_source_values']: # this plugin is one of the wanted
-					if plugin_name in self.movies: # are there any movies stored for this plugin?
-						for movie in self.movies[plugin_name].values():
-							if movie.provider in queue_event.params['select_provider_values']:
-								if titles:
-									found=False
-									for title in titles:
-										if title.lower() in movie.title.lower():
-											found=True
-										if title.lower() in movie.category.lower():
-											found=True
-									if not found:
-										continue
-								if description_regexs:
-									found=False
-									for description_regex in description_regexs:
-										if re.search(description_regex, movie.description):
-											found=True
-									if not found:
-										continue
-									
 
-								if max_result_count>0:
-									movie_info=MovieInfo.movie_to_movie_info(movie,'')
-									movie_info['streamable']=True
-									movie_info['recordable']=True
-									res.append(movie_info)
-									max_result_count-=1
-								else:
-									return res # maximal number of results reached
+					# now we need to do a dirty trick, because in our movies the entries are not store be the correct plugin name,
+					# but the real data source instead, which is slighty confusing,,
+					plugin_name=self.get_real_plugin_name(plugin_name)
+					if plugin_name in self.movies: # are there any movies stored for this plugin?
+						with self.lock:
+							for movie in self.movies[plugin_name].values():
+								if movie.provider in queue_event.params['select_provider_values']:
+										print('search_fails_on_categories missing!!!')
+										#if self.search_fails_on_categories(movie,queue_event.params['select_categories_values'] ):
+										#	continue
+										if titles or description_regexs: # in case any search criteria is given
+											if titles:
+												found=False
+												for title in titles:
+													if title.lower() in movie.title.lower():
+														found=True
+													if title.lower() in movie.category.lower():
+														found=True
+												if not found:
+													continue
+											if description_regexs:
+												found=False
+												for description_regex in description_regexs:
+													if re.search(description_regex, movie.description):
+														found=True
+												if not found:
+													continue
+												
+											if max_result_count>0:
+												movie_info=MovieInfo.movie_to_movie_info(movie,'')
+												movie_info['streamable']=self.is_streamable()
+												movie_info['recordable']=True
+												res.append(movie_info)
+												max_result_count-=1
+											else:
+												return res # maximal number of results reached
 			return res
 		return[]
+
+
+	def get_real_plugin_name(self,initial_plugin_name):
+		''' helper routine, as on some epg types we need to correct the plugin name
+		if this is the case, this method need to return its corrected plugin name
+		'''
+		return initial_plugin_name
+
+	def is_streamable(self):
+		''' helper routine, as some EPGs are streamable (e.g. Youtube, mediathecs)
+		but others are not, as there time is in the future
+		'''
+		return True
 
 	def _run(self):
 		''' starts the server
 		'''
-		self.load_filmlist(os.path.abspath('online_filmlist')) # BUG: we need to give a absolute path as the webserver will change the path suddenly later...
 		tick = 0
 		while self.runFlag:
-			time.sleep(1)
+			with self.lock:
+				self.check_for_updates()
+			time.sleep(10)
 
 	def _stop(self):
 		self.runFlag = False
@@ -158,13 +199,12 @@ class SplPlugin(SplThread):
 				return -1
 		return seconds
 
-	def load_filmlist(self, file_name):
-		print(os.path.abspath(file_name))
+	def check_for_updates(self):
+		file_name=os.path.join(self.origin_dir,'online_filmlist')
 		try: # does the file exist at all already?
 			filmlist_time_stamp= os.path.getmtime(file_name)
 		except:
 			filmlist_time_stamp=0
-		print("timestamp",filmlist_time_stamp,time.time())
 		if filmlist_time_stamp<time.time() - 60*60*48: # file is older as 48 hours
 			print("Retrieve film list")
 			try:
@@ -194,6 +234,9 @@ class SplPlugin(SplThread):
 				
 			except  Exception as e:
 				print('failed filmlist server list download')
+		else:
+			if self.movies:
+				return # no need to load, we have already movie data
 		loader_remember_data={'provider':'','category':''}
 
 

@@ -3,48 +3,53 @@
 
 
 # Standard module
-from jsonstorage import JsonStorage
-from messagehandler import Query
-from classes import MovieInfo
-from classes import Movie
-import defaults
-from splthread import SplThread
 import sys
 import os
+import threading
+import ssl
 import json
 from base64 import b64encode
 from threading import Timer , Lock
+import argparse
 import time
 import datetime
 import calendar
 import subprocess
-
+import copy
+from io import StringIO
+import threading
 from pprint import pprint
-from urllib.parse import urlparse, urlunparse
-
+import lzma
+import time
+import urllib
+from urllib.request import urlopen,urlretrieve,  urlparse, urlunparse
+from xml.etree.ElementTree import parse
 import re
-
 
 # Non standard modules (install with pip)
 
-ScriptPath = os.path.realpath(os.path.join(
-	os.path.dirname(__file__), "../../../common"))
 
 
 # Add the directory containing your module to the Python path (wants absolute paths)
+ScriptPath = os.path.realpath(os.path.join(
+	os.path.dirname(__file__), "../../../common"))
 sys.path.append(os.path.abspath(ScriptPath))
 
 ScriptPath = os.path.realpath(os.path.join(
 	os.path.dirname(__file__), "../.."))
 
-
 # Add the directory containing your module to the Python path (wants absolute paths)
 sys.path.append(os.path.abspath(ScriptPath))
-
-
 # own local modules
 
-class SplPlugin(SplThread):
+from jsonstorage import JsonStorage
+from messagehandler import Query
+from classes import MovieInfo
+from classes import Movie
+import defaults
+from epgprovider import EPGProvider
+
+class SplPlugin(EPGProvider):
 	plugin_id = 'satepg'
 	plugin_names = ['SAT EPG']
 
@@ -70,39 +75,17 @@ class SplPlugin(SplThread):
 		self.epg_storage = JsonStorage(os.path.join(
 			self.origin_dir, "epgdata.json"), {'epgdata':{}})
 		self.all_EPG_Data = self.epg_storage.read('epgdata')
-		self.providers = set()
-		# EPG has its own special hardwired categories
 
-		self.categories = [
-			{
-				'text': 'category_day_today',
-				'value': 'day:today'
-			},
-			{
-				'text': 'category_day_tomorrow',
-				'value': 'day:tomorrow'
-			},
-			{
-				'text': 'category_time_now',
-				'value': 'time:now'
-			},
-			{
-				'text': 'category_time_evening',
-				'value': 'time:evening'
-			},
-		]
 
-		self.movies = {}
 		self.timeline = {}
-		self.lock=Lock()
 
 		# at last announce the own plugin
-		super().__init__(modref.message_handler, self)
+		super().__init__(modref)
 		modref.message_handler.add_event_handler(
 			self.plugin_id, 0, self.event_listener)
 		modref.message_handler.add_query_handler(
 			self.plugin_id, 0, self.query_handler)
-		self.runFlag = True
+
 
 		# plugin specific stuff
 
@@ -124,15 +107,13 @@ class SplPlugin(SplThread):
 		if queue_event.type == defaults.QUERY_AVAILABLE_PROVIDERS:
 			res = []
 			for plugin_name in self.plugin_names:
-				# this plugin is one of the wanted
-				if plugin_name in queue_event.params['select_source_values']:
-					if plugin_name == self.plugin_names[0]:
-						for provider in self.providers:
-							if max_result_count > 0:
-								res.append(provider)
-								max_result_count -= 1
-							else:
-								return res  # maximal number of results reached
+				if plugin_name  in queue_event.params['select_source_values']: # this plugin is one of the wanted
+					for provider in self.providers:
+						if max_result_count > 0:
+							res.append(provider)
+							max_result_count -= 1
+						else:
+							return res  # maximal number of results reached
 			return res
 		if queue_event.type == defaults.QUERY_AVAILABLE_CATEGORIES:
 			res = []
@@ -156,19 +137,20 @@ class SplPlugin(SplThread):
 			res = []
 			titles = queue_event.params['select_title'].split()
 			# descriptions=queue_event.params['select_description'].split()
-			description_regexs = [re.compile(r'\b{}\b'.format(
-				description), re.IGNORECASE) for description in queue_event.params['select_description'].split()]
+			description_regexs = [re.compile(r'\b{}\b'.format(				description), re.IGNORECASE) for description in queue_event.params['select_description'].split()]
 			for plugin_name in self.plugin_names:
-				# this plugin is one of the wanted
-				if plugin_name in queue_event.params['select_source_values']:
+				if plugin_name in queue_event.params['select_source_values']: # this plugin is one of the wanted
 
 					# now we need to do a dirty trick, because in our movies the entries are not store be the correct plugin name,
 					# but the real data source instead, which is slighty confusing,,
-					plugin_name=self.stream_source
+					plugin_name=self.get_real_plugin_name(plugin_name)
 					if plugin_name in self.movies:  # are there any movies stored for this plugin?
 						with self.lock:
 							for movie in self.movies[plugin_name].values():
 								if movie.provider in queue_event.params['select_provider_values']:
+									print('search_fails_on_categories missing!!!')
+									#if self.search_fails_on_categories(movie,queue_event.params['select_categories_values'] ):
+									#	continue
 									if titles or description_regexs: # in case any search criteria is given
 										if titles:
 											found = False
@@ -187,15 +169,28 @@ class SplPlugin(SplThread):
 											if not found:
 												continue
 
-									if max_result_count > 0:
-										movie_info=MovieInfo.movie_to_movie_info(movie,'')
-										movie_info['recordable']=True
-										res.append(movie_info)
-										max_result_count -= 1
-									else:
-										return res  # maximal number of results reached
+										if max_result_count > 0:
+											movie_info=MovieInfo.movie_to_movie_info(movie,'')
+											movie_info['streamable']=self.is_streamable()
+											movie_info['recordable']=True
+											res.append(movie_info)
+											max_result_count -= 1
+										else:
+											return res  # maximal number of results reached
 			return res
 		return[]
+
+	def get_real_plugin_name(self,initial_plugin_name):
+		''' helper routine, as on some epg types we need to correct the plugin name
+		if this is the case, this method need to return its corrected plugin name
+		'''
+		return self.stream_source
+
+	def is_streamable(self):
+		''' helper routine, as some EPGs are streamable (e.g. Youtube, mediathecs)
+		but others are not, as there time is in the future
+		'''
+		return False
 
 	def _run(self):
 		''' starts the server
