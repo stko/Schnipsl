@@ -6,19 +6,13 @@
 from messagehandler import Query
 from classes import MovieInfo
 import defaults
-from splthread import SplThread
+from streamchannels import StreamChannel
 import sys
 import os
-import threading
-import ssl
-import json
 from base64 import b64encode
-import argparse
 import time
-import copy
-from io import StringIO
+
 from threading import  Lock
-import uuid
 from pprint import pprint
 from urllib.parse import urljoin 
 import requests
@@ -36,140 +30,37 @@ sys.path.append(os.path.abspath(ScriptPath))
 from classes import MovieInfo
 from classes import Movie
 from scheduler import Scheduler
+from jsonstorage import JsonStorage
 
-class SplPlugin(SplThread):
+class SplPlugin(StreamChannel):
 	plugin_id = 'channels_linvdr'
 	plugin_names = ['LinVDR Live']
 
 	def __init__(self, modref):
 		''' inits the plugin
 		'''
-		self.modref = modref
-
 		# do the plugin specific initialisation first
 		self.providers=set()
 		self.movies={}
-		self.serverConfig = self.modref.store.read_users_value('linvdrserver', [
-			{
-				'url':'http://192.168.1.7:3000/channels.html',
+		self.origin_dir = os.path.dirname(__file__)
+		self.config = JsonStorage(os.path.join(
+			self.origin_dir, "config.json"), [{
+			'url':'http://192.168.1.7:3000/channels.html',
 				'channels_per_device':0
-			}
-		])
-		self.lock=Lock()
+				}]
+		)		
 
 		# at last announce the own plugin
-		super().__init__(modref.message_handler, self)
+		super().__init__(modref)
 		modref.message_handler.add_event_handler(
 			self.plugin_id, 0, self.event_listener)
 		modref.message_handler.add_query_handler(
 			self.plugin_id, 0, self.query_handler)
-		self.runFlag = True
-
-	def event_listener(self, queue_event):
-		''' try to send simulated answers
-		'''
-		#print("simulator event handler", queue_event.type, queue_event.user)
-		if queue_event.type == '_join':
-			pass
-		if queue_event.type == defaults.MSG_SOCKET_EDIT_DELETE_REQUEST:
-			pass
-		# for further pocessing, do not forget to return the queue event
-		return queue_event
-
-	def query_handler(self, queue_event, max_result_count):
-		''' answers with list[] of results
-		'''
-		# print(self.plugin_id, "query handler", queue_event.type, queue_event.user, max_result_count)
-		if queue_event.type == defaults.QUERY_AVAILABLE_SOURCES:
-			return self.plugin_names
-		if queue_event.type == defaults.QUERY_AVAILABLE_PROVIDERS:
-			res=[]
-			for plugin_name in self.plugin_names:
-				if plugin_name  in queue_event.params['select_source_values']: # this plugin is one of the wanted
-					for provider in self.providers:
-						if max_result_count>0:
-							res.append(provider)
-							max_result_count-=1
-						else:
-							return res # maximal number of results reached
-			return res
-		if queue_event.type == defaults.QUERY_AVAILABLE_CATEGORIES:
-			# just do nothing, the mediathek does not have categories
-			pass
-		if queue_event.type == defaults.QUERY_MOVIE_ID:
-			elements=queue_event.params.split(':')
-			try:
-				return [self.movies[elements[0]][queue_event.params]]
-			except:
-				return []
-		if queue_event.type == defaults.QUERY_AVAILABLE_MOVIES:
-			res=[]
-			titles=queue_event.params['select_title'].split()
-			#descriptions=queue_event.params['select_description'].split()
-			description_regexs=[re.compile (r'\b{}\b'.format(description),re.IGNORECASE) for description in queue_event.params['select_description'].split()]
-			with self.lock:
-				for plugin_name in self.plugin_names:
-					if plugin_name in queue_event.params['select_source_values']: # this plugin is one of the wanted
-						if plugin_name in self.movies: # are there any movies stored for this plugin?
-							for movie in self.movies[plugin_name].values():
-								if movie.provider in queue_event.params['select_provider_values']:
-									
-									''' special for live streams: we have just one single live stream to report,
-
-									so we skip the whole search and store the movie directly
-
-
-									if titles:
-										found=False
-										for title in titles:
-											if title.lower() in movie.title.lower():
-												found=True
-											if title.lower() in movie.category.lower():
-												found=True
-										if not found:
-											continue
-									if description_regexs:
-										found=False
-										for description_regex in description_regexs:
-											if re.search(description_regex, movie.description):
-												found=True
-										if not found:
-											continue
-										
-
-									'''
-
-
-
-									if max_result_count>0:
-										movie_info=MovieInfo.movie_to_movie_info(movie,'')
-										movie_info['streamable']=True
-										movie_info['recordable']=False
-										res.append(movie_info)
-										max_result_count-=1
-									else:
-										return res # maximal number of results reached
-			return res
-		return[]
-
-	def _run(self):
-		''' starts the server
-		'''
-
-		scheduler = Scheduler(
-			[(self.loadChannels, -60)])
-		while self.runFlag:
-			scheduler.execute()
-			time.sleep(10)
-
-
-	def _stop(self):
-		self.runFlag = False
 
 	#------ plugin specific routines
 
 	def loadChannels(self):
-		for server in self.serverConfig:
+		for server in self.config.read('all'):
 			try:
 				f = requests.get(server['url'])
 				content=f.text
