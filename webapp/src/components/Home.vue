@@ -39,6 +39,8 @@
 import router from "../router";
 import messenger from "../messenger";
 import dayjs from "dayjs";
+import dayjsPluginUTC from 'dayjs-plugin-utc'
+dayjs.extend(dayjsPluginUTC, { parseToLocal: true })
 import LiveCard from "./LiveCard.vue";
 import RecordCard from "./RecordCard.vue";
 import TimerCard from "./TimerCard.vue";
@@ -207,7 +209,7 @@ export default {
 			}
 		},
 		localDateTime(timestamp, locale) {
-			return dayjs.unix(timestamp).format(locale);
+			return dayjs.unix(timestamp).local().format(locale);
 		},
 		duration(secondsValue) {
 			var seconds = parseInt(secondsValue, 10);
@@ -215,9 +217,9 @@ export default {
 				return "";
 			}
 			if (seconds < 3600) {
-				return dayjs.unix(seconds).format("mm:ss");
+				return dayjs.unix(seconds).utc().format("mm:ss");
 			} else {
-				return dayjs.unix(seconds).format("HH:mm:ss");
+				return dayjs.unix(seconds).utc().format("HH:mm:ss");
 			}
 		},
 		localMinutes(secondsValue) {
@@ -226,9 +228,9 @@ export default {
 				return "";
 			}
 			if (seconds < 3600) {
-				return dayjs.unix(seconds).format("mm [min]");
+				return dayjs.unix(seconds).utc().format("mm [min]");
 			} else {
-				return dayjs.unix(seconds).format("HH:mm");
+				return dayjs.unix(seconds).utc().format("HH:mm");
 			}
 		},
 		progress(viewed, duration) {

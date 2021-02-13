@@ -149,6 +149,8 @@
 import router from "../router";
 import messenger from "../messenger";
 import dayjs from "dayjs";
+import dayjsPluginUTC from 'dayjs-plugin-utc'
+dayjs.extend(dayjsPluginUTC, { parseToLocal: true })
 
 export default {
 	name: "Edit",
@@ -297,7 +299,7 @@ export default {
 			});
 		},
 		localDate(timestamp, locale) {
-			return dayjs.unix(timestamp).format(locale);
+			return dayjs.unix(timestamp).local().format(locale);
 		},
 		duration(secondsValue) {
 			var seconds = parseInt(secondsValue, 10);
@@ -305,9 +307,9 @@ export default {
 				return "";
 			}
 			if (seconds < 3600) {
-				return dayjs.unix(seconds).format("mm:ss");
+				return dayjs.unix(seconds).utc().format("mm:ss");
 			} else {
-				return dayjs.unix(seconds).format("HH:mm:ss");
+				return dayjs.unix(seconds).utc().format("HH:mm:ss");
 			}
 		},
 	},

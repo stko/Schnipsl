@@ -180,6 +180,8 @@
 import messenger from "../messenger";
 import RoundSlider from 'vue-round-slider'
 import dayjs from "dayjs";
+import dayjsPluginUTC from 'dayjs-plugin-utc'
+dayjs.extend(dayjsPluginUTC, { parseToLocal: true })
 
 export default {
 	name: "player",
@@ -272,7 +274,7 @@ export default {
 			}
 		},
 		localDate(timestamp, locale) {
-			return dayjs.unix(timestamp).format(locale);
+			return dayjs.unix(timestamp).local().format(locale);
 		},
 		duration(secondsValue) {
 			var seconds = parseInt(secondsValue, 10);
@@ -280,9 +282,9 @@ export default {
 				return "";
 			}
 			if (seconds < 3600) {
-				return dayjs.unix(seconds).format("mm:ss");
+				return dayjs.unix(seconds).utc().format("mm:ss");
 			} else {
-				return dayjs.unix(seconds).format("HH:mm:ss");
+				return dayjs.unix(seconds).utc().format("HH:mm:ss");
 			}
 		},
 		stopAndRecord(uri) {
@@ -301,10 +303,7 @@ export default {
 					this.player_pos.current_time >= 0 &&
 					this.player_pos.duration > 0
 				) {
-					return parseInt(
-						(this.player_pos.current_time * 100) /
-							this.player_pos.duration
-					);
+					return parseInt(this.player_pos.current_time);
 				} else {
 					return NaN;
 				}
