@@ -43,7 +43,7 @@ class SplPlugin(StreamChannel):
 		self.origin_dir = os.path.dirname(__file__)
 		self.config = JsonStorage(os.path.join(
 			self.origin_dir, "config.json"), {
-				'channel_file': 'Astra_19.2.xspf',
+				'channel_files': ['Astra_19.2.xspf'],
 				'scheme': 'http',
 				'netloc': '192.168.1.99'
 			}
@@ -56,11 +56,30 @@ class SplPlugin(StreamChannel):
 		modref.message_handler.add_query_handler(
 			self.plugin_id, 0, self.query_handler)
 
-	def loadChannels(self):
+	def add_movie(self,provider, full_url):
 		plugin_name=self.plugin_names[0]
 		source_type=defaults.MOVIE_TYPE_STREAM
+		self.providers.add(provider)
+		new_movie = Movie(
+			source=plugin_name,
+			source_type=source_type,
+			provider=provider,
+			category='live',
+			title=provider+" Live",
+			timestamp="0",
+			duration=0,
+			description='',
+			url=full_url
+		)
+		new_movie.add_stream('ts','',full_url)
+		if not plugin_name in self.movies:
+			self.movies[plugin_name]={}
+		self.movies[plugin_name][new_movie.uri()]=new_movie
+
+
+	def load_xspf(self, file_name):
 		try:
-			with open(os.path.join(	self.origin_dir,self.config.read('channel_file'))) as fd:
+			with open( file_name ) as fd:
 				root = xmltodict.parse(fd.read())
 				for track in root['playlist']['trackList']['track']:
 					provider=track['title']
@@ -78,27 +97,46 @@ class SplPlugin(StreamChannel):
 							url_st.fragment,
 					))
 					#print(full_url)
+					self.add_movie(provider, full_url)
+		except Exception as e:
+			print(str(e))
 
-
-
-					self.providers.add(provider)
-					new_movie = Movie(
-						source=plugin_name,
-						source_type=source_type,
-						provider=provider,
-						category='live',
-						title=provider+" Live",
-						timestamp="0",
-						duration=0,
-						description='',
-						url=full_url
-					)
-					new_movie.add_stream('ts','',full_url)
-					if not plugin_name in self.movies:
-						self.movies[plugin_name]={}
-					self.movies[plugin_name][new_movie.uri()]=new_movie
-
+	def load_m3u(self, file_name):
+		try:
+			with open( file_name ) as fd:
+				line=fd.readline()
+				while line: # if not eol 
+					line=line.strip()
+					if line.upper().startswith('#EXTINF:'):
+						try:
+							provider=line.split(maxsplit=1)[1]
+							location=fd.readline().strip()
+							if location: # if not eol 
+								url_st=urlparse(location)
+								full_url = urlunparse((
+										#url_st.scheme,
+										self.config.read('scheme'),
+										#url_st.netloc,
+										self.config.read('netloc'),
+										url_st.path,
+										url_st.params,
+										url_st.query,
+										url_st.fragment,
+								))
+								#print(full_url)
+								self.add_movie(provider, full_url)
+						except:
+							print('mailformed m3u element {0}'.format())
+					line=fd.readline()
 
 		except Exception as e:
 			print(str(e))
 
+	def loadChannels(self):
+		for channel_file in self.config.read('channel_files'):
+			full_file_path=os.path.join( self.origin_dir,channel_file)
+			filename, file_extension = os.path.splitext(full_file_path)
+			if file_extension.lower()=='.xspf':
+				self.load_xspf(full_file_path)
+			if file_extension.lower()=='.m3u':
+				self.load_m3u(full_file_path)
