@@ -65,7 +65,7 @@ class SplPlugin(EPGProvider):
 
 
 		# at last announce the own plugin
-		super().__init__(modref)
+		super().__init__(modref, self.origin_dir)
 		modref.message_handler.add_event_handler(
 		self.plugin_id, 0, self.event_listener)
 		modref.message_handler.add_query_handler(
@@ -78,92 +78,9 @@ class SplPlugin(EPGProvider):
 	def event_listener(self, queue_event):
 		''' react on events
 		'''
-		#print("mediathek_ard event handler", queue_event.type, queue_event.user)
+		#print("event handler", self.plugin_id, queue_event.type, queue_event.user)
 		# for further pocessing, do not forget to return the queue event
 		return queue_event
-
-	def query_handler(self, queue_event, max_result_count):
-		''' answers with list[] of results
-		'''
-		# print("query handler", self.plugin_id, queue_event.type,  queue_event.user, max_result_count)
-		if queue_event.type == defaults.QUERY_AVAILABLE_SOURCES:
-			return self.plugin_names
-		if queue_event.type == defaults.QUERY_AVAILABLE_PROVIDERS:
-			res=[]
-			for plugin_name in self.plugin_names:
-				if plugin_name  in queue_event.params['select_source_values']: # this plugin is one of the wanted
-					for provider in self.providers:
-						if max_result_count>0:
-							res.append(provider)
-							max_result_count-=1
-						else:
-							return res # maximal number of results reached
-			return res
-		if queue_event.type == defaults.QUERY_AVAILABLE_CATEGORIES:
-			res = []
-			for plugin_name in self.plugin_names:
-				# this plugin is one of the wanted
-				if plugin_name in queue_event.params['select_source_values']:
-					for category in self.categories:
-						if max_result_count > 0:
-							res.append(category)
-							max_result_count -= 1
-						else:
-							return res  # maximal number of results reached
-			return res
-		if queue_event.type == defaults.QUERY_MOVIE_ID:
-			elements=queue_event.params.split(':')
-			try:
-				return [self.movies[elements[0]][queue_event.params]]
-			except:
-				return []
-		if queue_event.type == defaults.QUERY_AVAILABLE_MOVIES:
-			res=[]
-			titles=queue_event.params['select_title'].split()
-			#descriptions=queue_event.params['select_description'].split()
-			description_regexs=[re.compile (r'\b{}\b'.format(description),re.IGNORECASE) for description in queue_event.params['select_description'].split()]
-			for plugin_name in self.plugin_names:
-				if plugin_name in queue_event.params['select_source_values']: # this plugin is one of the wanted
-
-					# now we need to do a dirty trick, because in our movies the entries are not store be the correct plugin name,
-					# but the real data source instead, which is slighty confusing,,
-					plugin_name=self.get_real_plugin_name(plugin_name)
-					if plugin_name in self.movies: # are there any movies stored for this plugin?
-						with self.lock:
-							for movie in self.movies[plugin_name].values():
-								if movie.provider in queue_event.params['select_provider_values']:
-										print('search_fails_on_categories missing!!!')
-										#if self.search_fails_on_categories(movie,queue_event.params['select_categories_values'] ):
-										#	continue
-										if titles or description_regexs: # in case any search criteria is given
-											if titles:
-												found=False
-												for title in titles:
-													if title.lower() in movie.title.lower():
-														found=True
-													if title.lower() in movie.category.lower():
-														found=True
-												if not found:
-													continue
-											if description_regexs:
-												found=False
-												for description_regex in description_regexs:
-													if re.search(description_regex, movie.description):
-														found=True
-												if not found:
-													continue
-												
-											if max_result_count>0:
-												movie_info=MovieInfo.movie_to_movie_info(movie,'')
-												movie_info['streamable']=self.is_streamable()
-												movie_info['recordable']=True
-												res.append(movie_info)
-												max_result_count-=1
-											else:
-												return res # maximal number of results reached
-			return res
-		return[]
-
 
 	def get_real_plugin_name(self,initial_plugin_name):
 		''' helper routine, as on some epg types we need to correct the plugin name

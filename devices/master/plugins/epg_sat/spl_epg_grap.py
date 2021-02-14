@@ -80,7 +80,7 @@ class SplPlugin(EPGProvider):
 		self.timeline = {}
 
 		# at last announce the own plugin
-		super().__init__(modref)
+		super().__init__(modref, self.origin_dir)
 		modref.message_handler.add_event_handler(
 			self.plugin_id, 0, self.event_listener)
 		modref.message_handler.add_query_handler(
@@ -98,93 +98,14 @@ class SplPlugin(EPGProvider):
 			self.stream_answer_play_list(queue_event)
 		return queue_event  # dont forget the  event for further pocessing...
 
-	def query_handler(self, queue_event, max_result_count):
-		''' answers with list[] of results
-		'''
-		# print("query handler", self.plugin_id, queue_event.type,  queue_event.user, max_result_count)
-		if queue_event.type == defaults.QUERY_AVAILABLE_SOURCES:
-			return self.plugin_names
-		if queue_event.type == defaults.QUERY_AVAILABLE_PROVIDERS:
-			res = []
-			for plugin_name in self.plugin_names:
-				if plugin_name  in queue_event.params['select_source_values']: # this plugin is one of the wanted
-					for provider in self.providers:
-						if max_result_count > 0:
-							res.append(provider)
-							max_result_count -= 1
-						else:
-							return res  # maximal number of results reached
-			return res
-		if queue_event.type == defaults.QUERY_AVAILABLE_CATEGORIES:
-			res = []
-			for plugin_name in self.plugin_names:
-				# this plugin is one of the wanted
-				if plugin_name in queue_event.params['select_source_values']:
-					for category in self.categories:
-						if max_result_count > 0:
-							res.append(category)
-							max_result_count -= 1
-						else:
-							return res  # maximal number of results reached
-			return res
-		if queue_event.type == defaults.QUERY_MOVIE_ID:
-			elements = queue_event.params.split(':')
-			try:
-				return [self.movies[elements[0]][queue_event.params]]
-			except:
-				return []
-		if queue_event.type == defaults.QUERY_AVAILABLE_MOVIES:
-			res = []
-			titles = queue_event.params['select_title'].split()
-			# descriptions=queue_event.params['select_description'].split()
-			description_regexs = [re.compile(r'\b{}\b'.format(				description), re.IGNORECASE) for description in queue_event.params['select_description'].split()]
-			for plugin_name in self.plugin_names:
-				if plugin_name in queue_event.params['select_source_values']: # this plugin is one of the wanted
-
-					# now we need to do a dirty trick, because in our movies the entries are not store be the correct plugin name,
-					# but the real data source instead, which is slighty confusing,,
-					plugin_name=self.get_real_plugin_name(plugin_name)
-					if plugin_name in self.movies:  # are there any movies stored for this plugin?
-						with self.lock:
-							for movie in self.movies[plugin_name].values():
-								if movie.provider in queue_event.params['select_provider_values']:
-									print('search_fails_on_categories missing!!!')
-									#if self.search_fails_on_categories(movie,queue_event.params['select_categories_values'] ):
-									#	continue
-									if titles or description_regexs: # in case any search criteria is given
-										if titles:
-											found = False
-											for title in titles:
-												if title.lower() in movie.title.lower():
-													found = True
-												if title.lower() in movie.category.lower():
-													found = True
-											if not found:
-												continue
-										if description_regexs:
-											found = False
-											for description_regex in description_regexs:
-												if re.search(description_regex, movie.description):
-													found = True
-											if not found:
-												continue
-
-										if max_result_count > 0:
-											movie_info=MovieInfo.movie_to_movie_info(movie,'')
-											movie_info['streamable']=self.is_streamable()
-											movie_info['recordable']=True
-											res.append(movie_info)
-											max_result_count -= 1
-										else:
-											return res  # maximal number of results reached
-			return res
-		return[]
-
 	def get_real_plugin_name(self,initial_plugin_name):
 		''' helper routine, as on some epg types we need to correct the plugin name
 		if this is the case, this method need to return its corrected plugin name
 		'''
 		return self.stream_source
+
+	def get_plugin_names(self ):
+		return self.plugin_names
 
 	def is_streamable(self):
 		''' helper routine, as some EPGs are streamable (e.g. Youtube, mediathecs)
@@ -213,36 +134,41 @@ class SplPlugin(EPGProvider):
 		# check for updates:
 		new_epg_loaded=False
 		actual_time=time.time()
-		for provider in self.all_EPG_Data:
-			if self.all_EPG_Data[provider]['requested']:
-				self.all_EPG_Data[provider]['requested']=False
-				if self.all_EPG_Data[provider]['lastmodified']<actual_time-60*60 or not self.all_EPG_Data[provider]['epg_data']:
-					time.sleep(10) # give the sat receiver some time to recover?!?!?!
-					epg_details = self.get_epg_from_linvdr(
-						provider,self.all_EPG_Data[provider]['url'])
-					if epg_details:
+		with self.whoosh_ix.writer() as whoosh_writer:
+			for provider in self.all_EPG_Data:
+				if self.all_EPG_Data[provider]['requested']:
+					self.all_EPG_Data[provider]['requested']=False
+					if self.all_EPG_Data[provider]['lastmodified']<actual_time-60*60 or not self.all_EPG_Data[provider]['epg_data']:
+						time.sleep(10) # give the sat receiver some time to recover?!?!?!
+						epg_details = self.get_epg_from_linvdr(
+							provider,self.all_EPG_Data[provider]['url'])
+						if epg_details:
+							new_epg_loaded=True
+							self.all_EPG_Data[provider]['lastmodified'] = time.time()
+							for start_time, movie_info in epg_details.items():
+								# refresh or add data
+								self.all_EPG_Data[provider]['epg_data'][start_time] = movie_info
+					movie_infos_to_delete={}
+					for start_time, movie_info in self.all_EPG_Data[provider]['epg_data'].items():
+						if int(start_time) + movie_info['duration']<actual_time - 60*60: # the movie ended at least one hour ago
+							movie_infos_to_delete[start_time]=movie_info['uri']
+					for start_time,uri in movie_infos_to_delete.items():
+						del(self.all_EPG_Data[provider]['epg_data'][start_time])
+						whoosh_writer.delete_by_term('uri',uri)
 						new_epg_loaded=True
-						self.all_EPG_Data[provider]['lastmodified'] = time.time()
-						for start_time, movie_info in epg_details.items():
-							# refresh or add data
-							self.all_EPG_Data[provider]['epg_data'][start_time] = movie_info
-				movie_infos_to_delete=[]
-				for start_time, movie_info in self.all_EPG_Data[provider]['epg_data'].items():
-					if int(start_time) + movie_info['duration']<actual_time - 60*60: # the movie ended at least one hour ago
-						movie_infos_to_delete.append(start_time)
-				for start_time in movie_infos_to_delete:
-					del(self.all_EPG_Data[provider]['epg_data'][start_time])
+			for provider_reference in list(self.all_EPG_Data.keys()):
+				if self.all_EPG_Data[provider_reference]['lastmodified']<actual_time-24*60*60: # no update the last 24 h? remove it..
+					for  movie_info in self.all_EPG_Data[provider]['epg_data'].values():
+						whoosh_writer.delete_by_term('uri',movie_info['uri'])
+					del(self.all_EPG_Data[provider_reference])
 					new_epg_loaded=True
-		for provider_reference in list(self.all_EPG_Data.keys()):
-			if self.all_EPG_Data[provider_reference]['lastmodified']<actual_time-24*60*60: # no update the last 24 h? remove it..
-				del(self.all_EPG_Data[provider_reference])
-				new_epg_loaded=True
 		if self.providers and not new_epg_loaded: # if this is not the first call (self.provides contains already data),but no new epg data
 			return
 		self.epg_storage.write('epgdata',self.all_EPG_Data)
 
 		# refill the internal lists
-		self.providers = set()
+		new_providers = set()
+		new_timeline = {}
 		# EPG has its own special hardwired categories
 		#self.categories = set()
 		# we'll use the name of the stream source plugin instead the name of the EPG plugin itself
@@ -250,27 +176,41 @@ class SplPlugin(EPGProvider):
 		plugin_name = self.stream_source
 		if not plugin_name in self.movies: 
 			self.movies[plugin_name] = {}
-		for provider, movie_data in self.all_EPG_Data.items():
-			self.providers.add(provider)
-			self.timeline[provider] = []
-			for movie_info in movie_data['epg_data'].values():
-				self.timeline[provider].append(type('', (object,), {
-												'timestamp': movie_info['timestamp'], 'movie_info': movie_info})())
-				self.movies[plugin_name][movie_info['uri']] = Movie(
-					source=plugin_name,
-					source_type=defaults.MOVIE_TYPE_STREAM,
-					provider=provider,
-					category=movie_info['category'],
-					title=movie_info['title'],
-					timestamp=movie_info['timestamp'],
-					duration=movie_info['duration'],
-					description=movie_info['description'],
-					url=movie_data['url']
-				)
-				# EPG has its own special hardwired categories
-				#self.categories.add(movie_info['category'])
+		with self.whoosh_ix.writer() as whoosh_writer:
+			for provider, movie_data in self.all_EPG_Data.items():
+				new_providers.add(provider)
+				new_timeline[provider] = []
+				for movie_info in movie_data['epg_data'].values():
+					new_timeline[provider].append(type('', (object,), {
+													'timestamp': movie_info['timestamp'], 'movie_info': movie_info})())
+					self.movies[plugin_name][movie_info['uri']] = Movie(
+						source=plugin_name,
+						source_type=defaults.MOVIE_TYPE_STREAM,
+						provider=provider,
+						category=movie_info['category'],
+						title=movie_info['title'],
+						timestamp=movie_info['timestamp'],
+						duration=movie_info['duration'],
+						description=movie_info['description'],
+						url=movie_data['url']
+					)
+					# fill the search engine
+					whoosh_writer.update_document(
+						provider=provider,
+						title=movie_info['title'],
+						category=movie_info['category'],
+						uri=movie_info['uri'],
+						description=movie_info['description'],
+						timestamp=datetime.datetime.fromtimestamp(int(movie_info['timestamp']))
+					)
+					# EPG has its own special hardwired categories
+					#self.categories.add(movie_info['category'])
 		for epg_list in self.timeline.values():
 			epg_list.sort(key=self.get_timestamp)
+		#replace the old data with the new one
+		self.providers = new_providers
+		self.timeline = new_timeline
+
 
 	def search_channel_info(self, channel_epg_name):
 		channels_info = self.channels_info.read('channels_info')
