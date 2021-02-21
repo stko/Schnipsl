@@ -5,24 +5,15 @@
 # Standard module
 import sys
 import os
-import threading
-import ssl
 import json
 from base64 import b64encode
 from threading import Timer , Lock
-import argparse
 import time
 import datetime
 import calendar
 import subprocess
-import copy
-from io import StringIO
-import threading
-from pprint import pprint
-import lzma
 import time
-import urllib
-from urllib.request import urlopen,urlretrieve,  urlparse, urlunparse
+from urllib.request import urlopen, urlretrieve,  urlparse, urlunparse
 from xml.etree.ElementTree import parse
 import re
 
@@ -140,7 +131,7 @@ class SplPlugin(EPGProvider):
 					self.all_EPG_Data[provider]['requested']=False
 					if self.all_EPG_Data[provider]['lastmodified']<actual_time-60*60 or not self.all_EPG_Data[provider]['epg_data']:
 						time.sleep(10) # give the sat receiver some time to recover?!?!?!
-						epg_details = self.get_epg_from_linvdr(
+						epg_details = self.get_epg_from_receiver(
 							provider,self.all_EPG_Data[provider]['url'])
 						if epg_details:
 							new_epg_loaded=True
@@ -237,7 +228,7 @@ class SplPlugin(EPGProvider):
 		# step 2: split by that seperator
 		return newstring.split('\n')
 
-	def get_epg_from_linvdr(self, provider,url):
+	def get_epg_from_receiver(self, provider,url):
 		# reduce the pids to the ones containing SDT (0x11) and EIT (0x12)
 		print('original URL:',url)
 		url_st = urlparse(url)
