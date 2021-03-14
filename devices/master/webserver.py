@@ -106,7 +106,7 @@ class WSZuulHandler(HTTPWebSocketsHandler):
 		''' thows a close event about the closed connection
 		'''
 
-		#self.log_message('%s', 'websocket closed')
+		self.log_message('%s', 'websocket closed')
 		global ws_clients
 		ws_clients.remove(self.user)
 		global modref
