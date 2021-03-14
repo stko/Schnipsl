@@ -84,7 +84,7 @@ class EPGProvider(SplThread):
 
 		self.runFlag = True
 		# init the search engine
-		self.whoosh_schema = Schema(provider=TEXT,title=TEXT,category=TEXT, uri=ID(stored=True, unique=True), description=TEXT, timestamp=DATETIME)
+		self.whoosh_schema = Schema(source=TEXT(stored=True),provider=TEXT,title=TEXT,category=TEXT, uri=ID(stored=True, unique=True), description=TEXT, timestamp=DATETIME)
 		index_dir=os.path.join(child_dir,'indexdir')
 		if not os.path.exists(index_dir):
 			os.mkdir(index_dir)
@@ -157,7 +157,7 @@ class EPGProvider(SplThread):
 				results = searcher.search(q)
 				for result in results:
 					try:
-						movie = self.movies[self.stream_source][result['uri']]
+						movie = self.movies[result['source']][result['uri']]
 						movie_info=MovieInfo.movie_to_movie_info(movie,'')
 						movie_info['streamable']=self.is_streamable()
 						movie_info['recordable']=True

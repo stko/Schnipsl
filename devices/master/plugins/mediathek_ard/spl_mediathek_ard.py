@@ -209,6 +209,7 @@ class SplPlugin(EPGProvider):
 					except:
 						timestamp=None
 					whoosh_writer.update_document(
+						source=plugin_name,
 						provider=provider,
 						title=data_array[2],
 						category=category,

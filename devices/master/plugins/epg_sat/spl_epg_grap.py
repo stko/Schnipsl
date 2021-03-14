@@ -187,6 +187,7 @@ class SplPlugin(EPGProvider):
 					)
 					# fill the search engine
 					whoosh_writer.update_document(
+						source=plugin_name,
 						provider=provider,
 						title=movie_info['title'],
 						category=movie_info['category'],
