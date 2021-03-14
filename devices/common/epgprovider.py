@@ -26,6 +26,9 @@ from urllib.request import urlopen,urlretrieve,  urlparse, urlunparse
 from xml.etree.ElementTree import parse
 import re
 from abc import ABCMeta, abstractmethod
+from whoosh import index
+from whoosh.fields import *
+from whoosh.qparser import QueryParser, MultifieldParser
 
 # Non standard modules (install with pip)
 
@@ -48,10 +51,8 @@ import defaults
 from splthread import SplThread
 
 class EPGProvider(SplThread):
-	plugin_id = 'satepg'
-	plugin_names = ['SAT EPG']
 
-	def __init__(self, modref):
+	def __init__(self, modref,child_dir):
 		''' inits the plugin
 		'''
 		self.modref = modref
@@ -82,7 +83,16 @@ class EPGProvider(SplThread):
 		self.lock=Lock()
 
 		self.runFlag = True
-
+		# init the search engine
+		self.whoosh_schema = Schema(source=TEXT(stored=True),provider=TEXT,title=TEXT,category=TEXT, uri=ID(stored=True, unique=True), description=TEXT, timestamp=DATETIME)
+		index_dir=os.path.join(child_dir,'indexdir')
+		if not os.path.exists(index_dir):
+			os.mkdir(index_dir)
+		if index.exists_in(index_dir):
+			self.whoosh_ix = index.open_dir(index_dir)
+		else:
+			self.whoosh_ix = index.create_in(index_dir, self.whoosh_schema)
+		#self.whoosh_writer = self.whoosh_ix.writer()
 		# plugin specific stuff
 
 	@abstractmethod
@@ -90,15 +100,21 @@ class EPGProvider(SplThread):
 		''' react on events
 		'''
 
+	@abstractmethod
+	def get_plugin_names(self ):
+		''' 
+		get child class plugin name
+		'''
+
 	def query_handler(self, queue_event, max_result_count):
 		''' answers with list[] of results
 		'''
-		# print("query handler", self.plugin_id, queue_event.type,  queue_event.user, max_result_count)
+		# print("query handler", self.get_plugin_names(), queue_event.type,  queue_event.user, max_result_count)
 		if queue_event.type == defaults.QUERY_AVAILABLE_SOURCES:
-			return self.plugin_names
+			return self.get_plugin_names()
 		if queue_event.type == defaults.QUERY_AVAILABLE_PROVIDERS:
 			res = []
-			for plugin_name in self.plugin_names:
+			for plugin_name in self.get_plugin_names():
 				if plugin_name  in queue_event.params['select_source_values']: # this plugin is one of the wanted
 						for provider in self.providers:
 							if max_result_count > 0:
@@ -109,7 +125,7 @@ class EPGProvider(SplThread):
 			return res
 		if queue_event.type == defaults.QUERY_AVAILABLE_CATEGORIES:
 			res = []
-			for plugin_name in self.plugin_names:
+			for plugin_name in self.get_plugin_names():
 				# this plugin is one of the wanted
 				if plugin_name in queue_event.params['select_source_values']:
 					for category in self.categories:
@@ -127,10 +143,32 @@ class EPGProvider(SplThread):
 				return []
 		if queue_event.type == defaults.QUERY_AVAILABLE_MOVIES:
 			res = []
+			if not self.get_plugin_names()[0] in queue_event.params['select_source_values']:
+				return res
+			with self.whoosh_ix.searcher() as searcher:
+				# qp = QueryParser('title', schema=self.whoosh_ix.schema)
+				qp = MultifieldParser(['title','category'], schema=self.whoosh_ix.schema)
+				if queue_event.params['select_provider_values']:
+					quoted_providers=map(lambda pr:'\''+pr+'\'',queue_event.params['select_provider_values']) # add a quote around each provider to make e.g. ZDF HD => 'ZDF HD'
+					query_string='provider:('+' '.join(quoted_providers)+') '+queue_event.params['select_title']
+				else:
+					query_string=queue_event.params['select_title']
+				q = qp.parse(query_string)
+				results = searcher.search(q)
+				for result in results:
+					try:
+						movie = self.movies[result['source']][result['uri']]
+						movie_info=MovieInfo.movie_to_movie_info(movie,'')
+						movie_info['streamable']=self.is_streamable()
+						movie_info['recordable']=True
+						res.append(movie_info)
+					except Exception as e:
+						print('Exception in',self.get_plugin_names()[0],e)
+				return res
 			titles = queue_event.params['select_title'].split()
 			# descriptions=queue_event.params['select_description'].split()
 			description_regexs = [re.compile(r'\b{}\b'.format(				description), re.IGNORECASE) for description in queue_event.params['select_description'].split()]
-			for plugin_name in self.plugin_names:
+			for plugin_name in self.get_plugin_names():
 				if plugin_name in queue_event.params['select_source_values']: # this plugin is one of the wanted
 
 					# now we need to do a dirty trick, because in our movies the entries are not store be the correct plugin name,
