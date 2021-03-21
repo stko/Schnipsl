@@ -15,9 +15,10 @@ var fs = require('fs')
 var rs = null
 var parser = new dvbtee.Parser
 
-var result = { 'service_ids': new Object(), 'details': new Object() }
+var result = { 'service_ids': new Object(),'providers': new Array(), 'details': new Object() }
 
 var details = result.details
+var providers = result.providers
 
 var channel_name = process.argv[2].toLowerCase()
 var nrOfLoops = parseInt(process.argv[3])
@@ -48,6 +49,9 @@ parser.on('data', function (data) {
 							result.service_ids[serviceId] = serviceName
 							if (serviceName.toLowerCase() === (channel_name)) {
 								channel_service_id = serviceId
+							}
+							if (!providers.includes(serviceName)){
+								providers.push(serviceName)
 							}
 						}
 					})

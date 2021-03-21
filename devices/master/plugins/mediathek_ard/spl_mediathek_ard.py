@@ -5,10 +5,8 @@
 # Standard module
 import sys
 import os
-from base64 import b64encode
 import time
 import datetime
-from pprint import pprint
 import lzma
 import time
 from urllib.request import urlopen,urlretrieve,  urlparse, urlunparse
@@ -108,6 +106,7 @@ class SplPlugin(EPGProvider):
 			filmlist_time_stamp= os.path.getmtime(file_name)
 		except:
 			filmlist_time_stamp=0
+		new_whoosh_index_is_needed=False
 		if filmlist_time_stamp<time.time() - 60*60*48: # file is older as 48 hours
 			print("Retrieve film list")
 			try:
@@ -132,6 +131,9 @@ class SplPlugin(EPGProvider):
 					try:
 						with open(file_name,'wb') as unpack_file_handle:
 							unpack_file_handle.write(lzma.open(file_name+'.pack').read())
+							new_whoosh_index_is_needed=True # re-index the data
+							self.reset_index() # destroy the existing index
+							print('filmlist server list downloaded')
 					except  Exception as e:
 						print('failed filmlist unpack',str(e))
 				
@@ -208,16 +210,17 @@ class SplPlugin(EPGProvider):
 						timestamp=datetime.datetime.fromtimestamp(int(data_array[16]))
 					except:
 						timestamp=None
-					whoosh_writer.update_document(
-						source=plugin_name,
-						provider=provider,
-						title=data_array[2],
-						category=category,
-						uri=new_movie.uri(),
-						## because of potential resource problems, we do not make the description searchable
-						#description=data_array[7], 
-						timestamp=timestamp
-					)
+					if new_whoosh_index_is_needed:
+						whoosh_writer.update_document(
+							source=plugin_name,
+							provider=provider,
+							title=data_array[2],
+							category=category,
+							uri=new_movie.uri(),
+							## because of potential resource problems, we do not make the description searchable
+							#description=data_array[7], 
+							timestamp=timestamp
+						)
 					new_movie.add_stream('mp4','',data_array[8])
 					if not plugin_name in self.movies:
 						self.movies[plugin_name]={}

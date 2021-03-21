@@ -39,6 +39,9 @@ from classes import MovieInfo
 from classes import Movie
 import defaults
 from epgprovider import EPGProvider
+import schnipsllogger
+
+logger = schnipsllogger.getLogger(__name__)
 
 class SplPlugin(EPGProvider):
 	plugin_id = 'satepg'
@@ -306,7 +309,9 @@ class SplPlugin(EPGProvider):
 					movie_info = MovieInfo.movie_to_movie_info(new_movie, category)
 					movie_info['recordable']=True
 					result[start]=movie_info
-				print("epg loaded, {0} entries".format(count))
+				for json_provider in epg_json['providers']:
+					logger.info("channel found in epg: {0}".format(json_provider))
+				logger.info("epg loaded, {0} entries".format(count))
 				return result
 		except Exception as ex:
 			print ("epg_grap could not be started. Error: %s" % (ex))
