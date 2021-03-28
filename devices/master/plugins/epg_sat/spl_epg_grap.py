@@ -107,17 +107,6 @@ class SplPlugin(EPGProvider):
 		'''
 		return False
 
-	def _run(self):
-		''' starts the server
-		'''
-		tick = 0
-		while self.runFlag:
-			with self.lock:
-				self.check_for_updates()
-			time.sleep(10)
-
-	def _stop(self):
-		self.runFlag = False
 
 	# ------ plugin specific routines
 

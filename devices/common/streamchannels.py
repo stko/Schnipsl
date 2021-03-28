@@ -23,6 +23,7 @@ from pprint import pprint
 from urllib.parse import urljoin 
 import requests
 import re
+from abc import abstractmethod
 
 # Non standard modules (install with pip)
 
@@ -57,11 +58,6 @@ class StreamChannel(SplThread):
 	def event_listener(self, queue_event):
 		''' try to send simulated answers
 		'''
-		#print("simulator event handler", queue_event.type, queue_event.user)
-		if queue_event.type == '_join':
-			pass
-		if queue_event.type == defaults.MSG_SOCKET_EDIT_DELETE_REQUEST:
-			pass
 		# for further pocessing, do not forget to return the queue event
 		return queue_event
 
@@ -96,48 +92,47 @@ class StreamChannel(SplThread):
 			titles=queue_event.params['select_title'].split()
 			#descriptions=queue_event.params['select_description'].split()
 			description_regexs=[re.compile (r'\b{}\b'.format(description),re.IGNORECASE) for description in queue_event.params['select_description'].split()]
-			with self.lock:
-				for plugin_name in self.plugin_names:
-					if plugin_name in queue_event.params['select_source_values']: # this plugin is one of the wanted
-						if plugin_name in self.movies: # are there any movies stored for this plugin?
-							for movie in self.movies[plugin_name].values():
-								if movie.provider in queue_event.params['select_provider_values']:
+			for plugin_name in self.plugin_names:
+				if plugin_name in queue_event.params['select_source_values']: # this plugin is one of the wanted
+					if plugin_name in self.movies: # are there any movies stored for this plugin?
+						for movie in self.movies[plugin_name].values():
+							if movie.provider in queue_event.params['select_provider_values']:
+								
+								''' special for live streams: we have just one single live stream to report,
+
+								so we skip the whole search and store the movie directly
+
+
+								if titles:
+									found=False
+									for title in titles:
+										if title.lower() in movie.title.lower():
+											found=True
+										if title.lower() in movie.category.lower():
+											found=True
+									if not found:
+										continue
+								if description_regexs:
+									found=False
+									for description_regex in description_regexs:
+										if re.search(description_regex, movie.description):
+											found=True
+									if not found:
+										continue
 									
-									''' special for live streams: we have just one single live stream to report,
 
-									so we skip the whole search and store the movie directly
-
-
-									if titles:
-										found=False
-										for title in titles:
-											if title.lower() in movie.title.lower():
-												found=True
-											if title.lower() in movie.category.lower():
-												found=True
-										if not found:
-											continue
-									if description_regexs:
-										found=False
-										for description_regex in description_regexs:
-											if re.search(description_regex, movie.description):
-												found=True
-										if not found:
-											continue
-										
-
-									'''
+								'''
 
 
 
-									if max_result_count>0:
-										movie_info=MovieInfo.movie_to_movie_info(movie,'')
-										movie_info['streamable']=True
-										movie_info['recordable']=False
-										res.append(movie_info)
-										max_result_count-=1
-									else:
-										return res # maximal number of results reached
+								if max_result_count>0:
+									movie_info=MovieInfo.movie_to_movie_info(movie,'')
+									movie_info['streamable']=True
+									movie_info['recordable']=False
+									res.append(movie_info)
+									max_result_count-=1
+								else:
+									return res # maximal number of results reached
 			return res
 		return[]
 
@@ -157,41 +152,7 @@ class StreamChannel(SplThread):
 
 	#------ plugin specific routines
 
-	def loadChannels(self):
-		for server in self.serverConfig:
-			try:
-				f = requests.get(server['url'])
-				content=f.text
-				match = re.search(r'<ol class="items">(.*)</ol>',content,re.DOTALL)
-				if match:
-					lines=match.group(1).split('\n')
-					item_regex=re.compile(r'<li value=".*"><a href="(.*)" vod  tvid=".*">(.*)</a>')
-					plugin_name=self.plugin_names[0]
-					source_type=defaults.MOVIE_TYPE_STREAM
-					with self.lock:
-						for line in lines:
-							item_match=re.search(item_regex,line)
-							if item_match:
-								full_url=urljoin(server['url'],item_match.group(1))
-								provider=item_match.group(2)
-								self.providers.add(provider)
-								new_movie = Movie(
-									source=plugin_name,
-									source_type=source_type,
-									provider=provider,
-									category='live',
-									title=provider+" Live",
-									timestamp="0",
-									duration=0,
-									description='',
-									url=full_url
-								)
-								new_movie.add_stream('ts','',item_match.group(1))
-								if not plugin_name in self.movies:
-									self.movies[plugin_name]={}
-								self.movies[plugin_name][new_movie.uri()]=new_movie
-
-
-			except Exception as e:
-				print(str(e))
-
+		@abstractmethod
+		def loadChannels(self):
+			'''load the channnels
+			'''

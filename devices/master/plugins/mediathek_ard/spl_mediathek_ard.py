@@ -83,18 +83,6 @@ class SplPlugin(EPGProvider):
 		'''
 		return True
 
-	def _run(self):
-		''' starts the server
-		'''
-		tick = 0
-		while self.runFlag:
-			with self.lock:
-				self.check_for_updates()
-			time.sleep(10)
-
-	def _stop(self):
-		self.runFlag = False
-
 	# ------ plugin specific routines
 
 	def getAbsolutePath(self, file_name):
