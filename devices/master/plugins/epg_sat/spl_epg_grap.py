@@ -118,7 +118,8 @@ class SplPlugin(EPGProvider):
 		new_epg_loaded=False
 		actual_time=time.time()
 		with self.whoosh_ix.writer() as whoosh_writer:
-			for provider in self.all_EPG_Data:
+			# we need to make a local copy first  of the providers to avoid a "array changed size during iteration" error
+			for provider in list(self.all_EPG_Data.keys()):
 				if self.all_EPG_Data[provider]['requested']:
 					self.all_EPG_Data[provider]['requested']=False
 					if self.all_EPG_Data[provider]['lastmodified']<actual_time-60*60 or not self.all_EPG_Data[provider]['epg_data']:
@@ -141,7 +142,7 @@ class SplPlugin(EPGProvider):
 						new_epg_loaded=True
 			for provider_reference in list(self.all_EPG_Data.keys()):
 				if self.all_EPG_Data[provider_reference]['lastmodified']<actual_time-24*60*60: # no update the last 24 h? remove it..
-					for  movie_info in self.all_EPG_Data[provider]['epg_data'].values():
+					for  movie_info in self.all_EPG_Data[provider_reference]['epg_data'].values():
 						whoosh_writer.delete_by_term('uri',movie_info['uri'])
 					del(self.all_EPG_Data[provider_reference])
 					new_epg_loaded=True
@@ -160,7 +161,7 @@ class SplPlugin(EPGProvider):
 		if not plugin_name in self.movies: 
 			self.movies[plugin_name] = {}
 		with self.whoosh_ix.writer() as whoosh_writer:
-			for provider, movie_data in self.all_EPG_Data.items():
+			for provider, movie_data in self.all_EPG_Data.copy().items():
 				new_providers.add(provider)
 				new_timeline[provider] = []
 				for movie_info in movie_data['epg_data'].values():
@@ -247,7 +248,7 @@ class SplPlugin(EPGProvider):
 
 
 		attr=[os.path.join(	self.origin_dir, 'epg_grap.sh') , url, provider , str(self.config.read('epgloops')), str(self.config.read('epgtimeout'))] # process arguments
-		print ("epg_grap started",provider, url,repr(attr))
+		logger.debug  ("epg_grap started {0} {1} {2}".format(provider, url,repr(attr)))
 		try:
 			self.process = subprocess.Popen(attr, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 			cleaner = Timer(600, self.cleanProcess) # if epg_grap won't exit, try to terminate its process in 30 seconds
@@ -256,9 +257,9 @@ class SplPlugin(EPGProvider):
 			#self.process.wait() # oops... not needed? harmless!
 			cleaner.cancel()
 			if err:
-				print ("epg_grap ended with an error:\n%s" % ( err))
+				logger.warning ("epg_grap ended with an error:\n%s" % ( err))
 			else:
-				print ("epg_grap' ended")
+				logger.debug ("epg_grap' ended")
 				epg_json_string=epg_out.decode()
 				epg_json = json.loads(epg_json_string)
 				result = {}
@@ -299,11 +300,11 @@ class SplPlugin(EPGProvider):
 					movie_info['recordable']=True
 					result[start]=movie_info
 				for json_provider in epg_json['providers']:
-					logger.info("channel found in epg: {0}".format(json_provider))
-				logger.info("epg loaded, {0} entries".format(count))
+					logger.debug("channel found in epg: {0}".format(json_provider))
+				logger.info("{0} epg loaded, {1} entries".format(provider,count))
 				return result
 		except Exception as ex:
-			print ("epg_grap could not be started. Error: %s" % (ex))
+			logger.warning ("epg_grap could not be started. Error: %s" % (ex))
 		return
 
 	def get_timestamp(self, elem):
