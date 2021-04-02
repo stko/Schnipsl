@@ -82,6 +82,27 @@ class SplPlugin(EPGProvider):
 
 
 		# plugin specific stuff
+		# each EPG has its own special hardwired categories
+
+		self.categories = [
+			{
+				'text': 'category_today',
+				'value': 'today'
+			},
+			{
+				'text': 'category_tomorrow',
+				'value': 'tomorrow'
+			},
+			{
+				'text': 'category_now',
+				'value': 'now'
+			},
+			{
+				'text': 'category_evening',
+				'value': "['8 PM' to tomorrow]"
+			},
+		]
+
 
 
 	def event_listener(self, queue_event):
@@ -100,6 +121,9 @@ class SplPlugin(EPGProvider):
 
 	def get_plugin_names(self ):
 		return self.plugin_names
+
+	def get_categories(self ):
+		return self.categories
 
 	def is_streamable(self):
 		''' helper routine, as some EPGs are streamable (e.g. Youtube, mediathecs)
@@ -224,7 +248,6 @@ class SplPlugin(EPGProvider):
 
 	def get_epg_from_receiver(self, provider,url):
 		# reduce the pids to the ones containing SDT (0x11) and EIT (0x12)
-		print('original URL:',url)
 		url_st = urlparse(url)
 		queries = url_st.query
 		new_queries = ""

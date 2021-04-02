@@ -60,6 +60,19 @@ class SplPlugin(EPGProvider):
 
 
 		# plugin specific stuff
+		# each EPG has its own special hardwired categories
+
+		self.categories = [
+			{
+				'text': 'category_new',
+				'value': "['-1 week' to now]"
+			},
+			{
+				'text': 'category_actual',
+				'value': "['-4 week' to now]"
+			},
+		]
+
 
 
 	def event_listener(self, queue_event):
@@ -77,6 +90,9 @@ class SplPlugin(EPGProvider):
 
 	def get_plugin_names(self ):
 		return self.plugin_names
+
+	def get_categories(self ):
+		return self.categories
 
 	def is_streamable(self):
 		''' helper routine, as some EPGs are streamable (e.g. Youtube, mediathecs)

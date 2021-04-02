@@ -5,6 +5,9 @@
 # Standard module
 
 
+from classes import MovieInfo
+import defaults
+from splthread import SplThread
 import sys
 import os
 from base64 import b64encode
@@ -21,7 +24,7 @@ from abc import abstractmethod
 # Non standard modules (install with pip)
 from whoosh import index
 from whoosh.fields import *
-from whoosh.qparser import MultifieldParser
+from whoosh.qparser import MultifieldParser, OrGroup
 from whoosh.qparser.dateparse import DateParserPlugin
 
 # Add the directory containing your module to the Python path (wants absolute paths)
@@ -33,9 +36,7 @@ ScriptPath = os.path.realpath(os.path.join(
 sys.path.append(os.path.abspath(ScriptPath))
 
 # own local modules
-from splthread import SplThread
-import defaults
-from classes import MovieInfo
+
 
 class EPGProvider(SplThread):
 
@@ -44,27 +45,6 @@ class EPGProvider(SplThread):
 		'''
 		self.modref = modref
 		super().__init__(modref.message_handler, self)
-		# EPG has its own special hardwired categories
-
-		self.categories = [
-			{
-				'text': 'category_today',
-				'value': 'today'
-			},
-			{
-				'text': 'category_tomorrow',
-				'value': 'tomorrow'
-			},
-			{
-				'text': 'category_now',
-				'value': 'now'
-			},
-			{
-				'text': 'category_evening',
-				'value': "'8 PM' to tomorrow"
-			},
-		]
-
 		self.providers = set()
 		self.movies = {}
 		self.lock = Lock()
@@ -97,6 +77,11 @@ class EPGProvider(SplThread):
 		''' 
 		get child class plugin name
 		'''
+	@abstractmethod
+	def get_categories(self):
+		''' 
+		get child class categories
+		'''
 
 	def query_handler(self, queue_event, max_result_count):
 		''' answers with list[] of results
@@ -121,7 +106,7 @@ class EPGProvider(SplThread):
 			for plugin_name in self.get_plugin_names():
 				# this plugin is one of the wanted
 				if plugin_name in queue_event.params['select_source_values']:
-					for category in self.categories:
+					for category in self.get_categories():
 						if max_result_count > 0:
 							res.append(category)
 							max_result_count -= 1
@@ -144,19 +129,20 @@ class EPGProvider(SplThread):
 					['title', 'category', 'timestamp'], schema=self.whoosh_ix.schema)
 				query_string = ''
 				if queue_event.params['select_provider_values']:
-					# add a quote around each provider to make e.g. ZDF HD => 'ZDF HD'
+					# add a quote around each provider to make e.g. ZDF HD => 'ZDF HD' and add provider: to it
 					quoted_values = map(
-						lambda pr: '\''+pr+'\'', queue_event.params['select_provider_values'])
-					query_string += 'provider:('+' '.join(quoted_values)+') '
+						lambda pr: 'provider:\''+pr+'\'', queue_event.params['select_provider_values'])
+					query_string +='(' + ' OR '.join(quoted_values) + ')'
 				if queue_event.params['select_category_values']:
-					# add a quote around each provider to make e.g. ZDF HD => 'ZDF HD'
+					# add a quote around each category to make e.g. ZDF HD => 'ZDF HD' and add timestamp: to it
 					quoted_values = map(
-						lambda pr: '\''+pr+'\'', queue_event.params['select_category_values'])
+						lambda pr: 'timestamp:'+pr, queue_event.params['select_category_values'])
 					# query_string += 'timestamp:('+' '.join(quoted_values)+') '
-					query_string += 'timestamp:('+' '.join(
-						queue_event.params['select_category_values'])+') '
+					if query_string:
+						query_string+=' AND '
+					query_string += '(' +' OR '.join(quoted_values) + ')'
 					qp.add_plugin(DateParserPlugin())
-				query_string += queue_event.params['select_title']
+				query_string += ' ' + queue_event.params['select_title']
 				q = qp.parse(query_string)
 				results = searcher.search(q)
 				for result in results:
