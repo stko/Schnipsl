@@ -36,6 +36,7 @@ from classes import MovieInfo
 from classes import Movie
 import defaults
 from epgprovider import EPGProvider
+import schnipsllogger
 
 class SplPlugin(EPGProvider):
 	plugin_id='mediathek_ard'
@@ -45,7 +46,7 @@ class SplPlugin(EPGProvider):
 		''' inits the plugin
 		'''
 		self.modref = modref
-
+		self.logger = schnipsllogger.getLogger(__name__)
 		# do the plugin specific initialisation first
 		self.origin_dir = os.path.dirname(__file__)
 
@@ -96,7 +97,11 @@ class SplPlugin(EPGProvider):
 			filmlist_time_stamp=0
 		new_whoosh_index_is_needed=False
 		if filmlist_time_stamp<time.time() - 60*60*48: # file is older as 48 hours
-			print("Retrieve film list")
+			'''
+			Bootstrap to read the filmlist:
+			1. read the list of actual filmlist URLs from https://res.mediathekview.de/akt.xml
+			'''
+			self.logger.info("Retrieve film list")
 			try:
 				var_url = urlopen('https://res.mediathekview.de/akt.xml')
 				server_list = parse(var_url)
@@ -108,23 +113,25 @@ class SplPlugin(EPGProvider):
 					if this_prio< prio: # filter for the server with the lowest prio
 						prio=this_prio
 						url = item.findtext('URL')
-						print(url)
-						print(prio)
-						print()
+						self.logger.info(f'Mediathek filmlist url {url}')
 				if url:
 					try:
 						urlretrieve(url,file_name+'.pack')
+						self.logger.info("filmlist downloaded")
 					except  Exception as e:
-						print('failed filmlist download',str(e))
+						self.logger.warning(f'failed filmlist download {str(e)}')
 					try:
 						with open(file_name,'wb') as unpack_file_handle:
-							unpack_file_handle.write(lzma.open(file_name+'.pack').read())
+							with lzma.open(file_name+'.pack','rb') as archive_file_handle:
+								bytes = archive_file_handle.read(4096)
+								while bytes:
+									unpack_file_handle.write(bytes)
+									bytes = archive_file_handle.read(4096)
 							new_whoosh_index_is_needed=True # re-index the data
 							self.reset_index() # destroy the existing index
-							print('filmlist server list downloaded')
+							self.logger.info('filmlist server list unpacked')
 					except  Exception as e:
 						print('failed filmlist unpack',str(e))
-				
 			except  Exception as e:
 				print('failed filmlist server list download')
 		else:
@@ -132,90 +139,88 @@ class SplPlugin(EPGProvider):
 				return # no need to load, we have already movie data
 		loader_remember_data={'provider':'','category':''}
 
-
-		'''
-		Bootstrap to read the filmlist:
-		1. read the list of actual filmlist URLs from https://res.mediathekview.de/akt.xml
-		'''
-		with open(file_name) as data:
-			with self.whoosh_ix.writer() as whoosh_writer:
-				count=0
-				for liste in JsonSlicer(data, ('X'), path_mode='map_keys'):
-					count+=1
-					data_array=liste[1]
-					# "Sender"	0,
-					# "Thema" 	1,
-					# "Titel"	2,
-					# "Datum"	3,
-					# "Zeit"	4,
-					# "Dauer"	5,
-					# "Größe [MB]"	6,
-					# "Beschreibung"	7,
-					# "Url"				8,
-					# "Website"			9,
-					# "Url Untertitel"	10,
-					# "Url RTMP"		11,
-					# "Url Klein"		12,
-					# "Url RTMP Klein"	13,
-					# "Url HD"			14,
-					# "Url RTMP HD"		15,
-					# "DatumL"			16,
-					# "Url History"		17,
-					# "Geo"				18,
-					# "neu"				19
-					provider=data_array[0]
-					category=data_array[1]
-					if provider:
-						loader_remember_data['provider']=provider
-					else:
-						provider=loader_remember_data['provider']
-					if category:
-						loader_remember_data['category']=category
-					else:
-						category=loader_remember_data['category']
-					if category=='Livestream':
-						source_type=defaults.MOVIE_TYPE_STREAM
-						plugin_name=self.plugin_names[1]
-						provider=provider.replace('Livestream','').strip()
-						#print("Livestream")
-					else:
-						plugin_name=self.plugin_names[0]
-						source_type=defaults.MOVIE_TYPE_RECORD
-					self.providers.add(provider)
-					new_movie = Movie(
-						source=plugin_name,
-						source_type=source_type,
-						provider=provider,
-						category=category,
-						title=data_array[2],
-						timestamp=data_array[16],
-						duration=self.time_string_to_secs(data_array[5]),
-						description=data_array[7],
-						url=data_array[8]
-					)
-					# fill the search engine
-					try: # livestream do not have a duration
-						timestamp=datetime.datetime.fromtimestamp(int(data_array[16]))
-					except:
-						timestamp=None
-					if new_whoosh_index_is_needed:
-						whoosh_writer.update_document(
+		try:
+			with open(file_name) as data:
+				with self.whoosh_ix.writer() as whoosh_writer:
+					count=0
+					for liste in JsonSlicer(data, ('X'), path_mode='map_keys'):
+						count+=1
+						data_array=liste[1]
+						# "Sender"	0,
+						# "Thema" 	1,
+						# "Titel"	2,
+						# "Datum"	3,
+						# "Zeit"	4,
+						# "Dauer"	5,
+						# "Größe [MB]"	6,
+						# "Beschreibung"	7,
+						# "Url"				8,
+						# "Website"			9,
+						# "Url Untertitel"	10,
+						# "Url RTMP"		11,
+						# "Url Klein"		12,
+						# "Url RTMP Klein"	13,
+						# "Url HD"			14,
+						# "Url RTMP HD"		15,
+						# "DatumL"			16,
+						# "Url History"		17,
+						# "Geo"				18,
+						# "neu"				19
+						provider=data_array[0]
+						category=data_array[1]
+						if provider:
+							loader_remember_data['provider']=provider
+						else:
+							provider=loader_remember_data['provider']
+						if category:
+							loader_remember_data['category']=category
+						else:
+							category=loader_remember_data['category']
+						if category=='Livestream':
+							source_type=defaults.MOVIE_TYPE_STREAM
+							plugin_name=self.plugin_names[1]
+							provider=provider.replace('Livestream','').strip()
+							#print("Livestream")
+						else:
+							plugin_name=self.plugin_names[0]
+							source_type=defaults.MOVIE_TYPE_RECORD
+						self.providers.add(provider)
+						new_movie = Movie(
 							source=plugin_name,
+							source_type=source_type,
 							provider=provider,
-							title=data_array[2],
 							category=category,
-							uri=new_movie.uri(),
-							## because of potential resource problems, we do not make the description searchable
-							#description=data_array[7], 
-							timestamp=timestamp
+							title=data_array[2],
+							timestamp=data_array[16],
+							duration=self.time_string_to_secs(data_array[5]),
+							description=data_array[7],
+							url=data_array[8]
 						)
-					new_movie.add_stream('mp4','',data_array[8])
-					if not plugin_name in self.movies:
-						self.movies[plugin_name]={}
-					self.movies[plugin_name][new_movie.uri()]=new_movie
+						# fill the search engine
+						try: # livestream do not have a duration
+							timestamp=datetime.datetime.fromtimestamp(int(data_array[16]))
+						except:
+							timestamp=None
+						if new_whoosh_index_is_needed:
+							whoosh_writer.update_document(
+								source=plugin_name,
+								provider=provider,
+								title=data_array[2],
+								category=category,
+								uri=new_movie.uri(),
+								## because of potential resource problems, we do not make the description searchable
+								#description=data_array[7], 
+								timestamp=timestamp
+							)
+						new_movie.add_stream('mp4','',data_array[8])
+						if not plugin_name in self.movies:
+							self.movies[plugin_name]={}
+						self.movies[plugin_name][new_movie.uri()]=new_movie
 
 
-		print("filmlist loaded, {0} entries",count)
+				print("filmlist loaded, {0} entries",count)
+		except  Exception as e:
+			self.logger.warning('failed to read filmlist')
 
 	def time_string_to_secs(self, time_string):
 		elements=time_string.split(':')
