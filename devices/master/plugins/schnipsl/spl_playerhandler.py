@@ -133,7 +133,7 @@ class SplPlugin(SplThread):
 		})()
 		})()
 		self.modref.message_handler.queue_event(None, defaults.DEVICE_PLAY_REQUEST, {
-			'movie_url': movie_info['url'], 'current_time': current_time, 'movie_mime_type': 'video/mp4', 'device_friendly_name': device_friendly_name})
+			'movie_url': movie_info['url'], 'current_time': current_time, 'movie_mime_type': movie_info['mime'], 'device_friendly_name': device_friendly_name})
 		self.send_player_movie_info(user,  movie_info)
 		print('Start play for {0} {1} {2} {3}'.format(
 			user, device_friendly_name, uri, movie_info['url']))

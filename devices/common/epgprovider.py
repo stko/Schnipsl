@@ -129,24 +129,24 @@ class EPGProvider(SplThread):
 			res = []
 			if not elements[0] in self.get_plugin_names():
 				# its not our source
-				return res
+				pass # return res
 			with self.whoosh_ix.searcher() as searcher:
 				qp = QueryParser('uri', schema=self.whoosh_ix.schema)
-				q = qp.parse(queue_event.params)
+				q = qp.parse('"'+queue_event.params+'"')
 				results = searcher.search(q)
 				for result in results:
 					try:
 						#movie_info = self.movies[result['source']][result['uri']]
-
 						movie_info = MovieInfo(
-							url = result['source'],
+							url = result['url'],
 							mime = result['mime'],
 							title = result['title'],
 							category = result['category'],
 							source = result['source'],
-							source_type = result['source'],
+							source_type = result['source_type'],
 							provider = result['provider'],
-							timestamp = result['timestamp'].timestamp(),
+							# caution: when using timestamp(), it needs to be converted to int, otherways it will be a float
+							timestamp = int(result['timestamp'].timestamp()),
 							duration = result['duration'],
 							description = result['description']
 						)
@@ -188,13 +188,14 @@ class EPGProvider(SplThread):
 						#movie_info = self.movies[result['source']][result['uri']]
 
 						movie_info = MovieInfo(
-							url = result['source'],
+							url = result['url'],
 							mime = result['mime'],
 							title = result['title'],
 							category = result['category'],
 							source = result['source'],
-							source_type = result['source'],
+							source_type = result['source_type'],
 							provider = result['provider'],
+							# caution: when using timestamp(), it needs to be converted to int, otherways it will be a float
 							timestamp = int(result['timestamp'].timestamp()),
 							duration = result['duration'],
 							description = result['description']
