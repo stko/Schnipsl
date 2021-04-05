@@ -131,7 +131,7 @@ class EPGProvider(SplThread):
 				# its not our source
 				return res
 			with self.whoosh_ix.searcher() as searcher:
-				qp = QueryParser('id', schema=self.whoosh_ix.schema)
+				qp = QueryParser('uri', schema=self.whoosh_ix.schema)
 				q = qp.parse(queue_event.params)
 				results = searcher.search(q)
 				for result in results:
