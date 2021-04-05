@@ -18,7 +18,7 @@ from xml.etree.ElementTree import parse
 import re
 
 # Non standard modules (install with pip)
-
+from whoosh.qparser import QueryParser
 
 
 # Add the directory containing your module to the Python path (wants absolute paths)
@@ -138,6 +138,8 @@ class SplPlugin(EPGProvider):
 
 	def check_for_updates(self):
 		# check for updates:
+		# we'll use the name of the stream source plugin instead the name of the EPG plugin itself
+		plugin_name = self.stream_source
 		new_epg_loaded=False
 		actual_time=time.time()
 		with self.whoosh_ix.writer() as whoosh_writer:
@@ -154,19 +156,44 @@ class SplPlugin(EPGProvider):
 							self.all_EPG_Data[provider]['lastmodified'] = time.time()
 							for start_time, movie_info in epg_details.items():
 								# refresh or add data
-								self.all_EPG_Data[provider]['epg_data'][start_time] = movie_info
+								if int(start_time)< actual_time+ 24*60*60: # only if the movie starts within the next 24 h, store it in Memory
+									self.all_EPG_Data[provider]['epg_data'][start_time] = movie_info
+								# fill the search engine
+								whoosh_writer.update_document(
+									source=plugin_name,
+									provider=provider,
+									title=movie_info['title'],
+									category=movie_info['category'],
+									uri=movie_info['uri'],
+									url=movie_info['url'],
+									mime=movie_info['mime'],
+									duration=movie_info['duration'],
+									description=movie_info['description'],
+									timestamp=datetime.datetime.fromtimestamp(int(movie_info['timestamp']))
+								)
+							# do to only one epg update at a time and give the other threads some recources, we'll
+							# stop the loop after each providerupdate and wait for the next one
+							break
+
+
 					movie_infos_to_delete={}
+					max_age_timestamp=actual_time - 6* 60*60 # the movie started at least six hour ago
+					max_age_timestamp_datetime=datetime.datetime.fromtimestamp(actual_time)
 					for start_time, movie_info in self.all_EPG_Data[provider]['epg_data'].items():
-						if int(start_time) + movie_info['duration']<actual_time - 60*60: # the movie ended at least one hour ago
+						if int(start_time) <max_age_timestamp:
 							movie_infos_to_delete[start_time]=movie_info['uri']
 					for start_time,uri in movie_infos_to_delete.items():
 						del(self.all_EPG_Data[provider]['epg_data'][start_time])
-						whoosh_writer.delete_by_term('uri',uri)
 						new_epg_loaded=True
+					if movie_infos_to_delete:
+						qp = QueryParser('timestamp', schema=self.whoosh_ix.schema)
+						querystring = "timestamp:[19700101 to {0}]".format(max_age_timestamp_datetime.strftime('%Y%d%m%H%M%S'))
+						q = qp.parse(querystring)
+						whoosh_writer.delete_by_query(q)
+			#delete old provider
 			for provider_reference in list(self.all_EPG_Data.keys()):
 				if self.all_EPG_Data[provider_reference]['lastmodified']<actual_time-24*60*60: # no update the last 24 h? remove it..
-					for  movie_info in self.all_EPG_Data[provider_reference]['epg_data'].values():
-						whoosh_writer.delete_by_term('uri',movie_info['uri'])
+					whoosh_writer.delete_by_term('provider',provider_reference)
 					del(self.all_EPG_Data[provider_reference])
 					new_epg_loaded=True
 		if self.providers and not new_epg_loaded: # if this is not the first call (self.provides contains already data),but no new epg data
@@ -178,35 +205,15 @@ class SplPlugin(EPGProvider):
 		new_timeline = {}
 		# EPG has its own special hardwired categories
 		#self.categories = set()
-		# we'll use the name of the stream source plugin instead the name of the EPG plugin itself
-		# plugin_name = self.plugin_names[0]
-		plugin_name = self.stream_source
 		if not plugin_name in self.movies: 
 			self.movies[plugin_name] = {}
-		with self.whoosh_ix.writer() as whoosh_writer:
-			for provider, movie_data in self.all_EPG_Data.copy().items():
-				new_providers.add(provider)
-				new_timeline[provider] = []
-				for movie_info in movie_data['epg_data'].values():
-					new_timeline[provider].append(type('', (object,), {
-													'timestamp': movie_info['timestamp'], 'movie_info': movie_info})())
-					self.movies[plugin_name][movie_info['uri']] = movie_info
-
-					# fill the search engine
-					whoosh_writer.update_document(
-						source=plugin_name,
-						provider=provider,
-						title=movie_info['title'],
-						category=movie_info['category'],
-						uri=movie_info['uri'],
-						url=movie_info['url'],
-						mime=movie_info['mime'],
-						duration=movie_info['duration'],
-						description=movie_info['description'],
-						timestamp=datetime.datetime.fromtimestamp(int(movie_info['timestamp']))
-					)
-					# EPG has its own special hardwired categories
-					#self.categories.add(movie_info['category'])
+		for provider, movie_data in self.all_EPG_Data.copy().items():
+			new_providers.add(provider)
+			new_timeline[provider] = []
+			for movie_info in movie_data['epg_data'].values():
+				new_timeline[provider].append(type('', (object,), {
+												'timestamp': movie_info['timestamp'], 'movie_info': movie_info})())
+				self.movies[plugin_name][movie_info['uri']] = movie_info
 		for epg_list in self.timeline.values():
 			epg_list.sort(key=self.get_timestamp)
 		#replace the old data with the new one
