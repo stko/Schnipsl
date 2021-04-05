@@ -6,7 +6,6 @@
 from jsonstorage import JsonStorage
 from messagehandler import Query
 from classes import MovieInfo
-from classes import Movie
 import defaults
 from splthread import SplThread
 import sys
@@ -146,27 +145,26 @@ class SplPlugin(SplThread):
 				# this plugin is one of the wanted
 				if plugin_name in queue_event.params['select_source_values']:
 					if plugin_name in self.movies:  # are there any movies stored for this plugin?
-						for movie in self.movies[plugin_name].values():
-							if movie.provider in queue_event.params['select_provider_values']:
+						for movie_info in self.movies[plugin_name].values():
+							if movie_info['provider'] in queue_event.params['select_provider_values']:
 								if titles:
 									found = False
 									for title in titles:
-										if title.lower() in movie.title.lower():
+										if title.lower() in movie_info['title'].lower():
 											found = True
-										if title.lower() in movie.category.lower():
+										if title.lower() in movie_info['category'].lower():
 											found = True
 									if not found:
 										continue
 								if description_regexs:
 									found = False
 									for description_regex in description_regexs:
-										if re.search(description_regex, movie.description):
+										if re.search(description_regex, movie_info['description']):
 											found = True
 									if not found:
 										continue
 
 								if max_result_count > 0:
-									movie_info=MovieInfo.movie_to_movie_info(movie,'')
 									movie_info['streamable']=False
 									movie_info['recordable']=True
 									res.append(movie_info)
@@ -272,17 +270,7 @@ class SplPlugin(SplThread):
 				for movie_info in movie_data['epg_data']:
 					self.timeline[provider].append(type('', (object,), {
 												   'timestamp': movie_info['timestamp'], 'movie_info': movie_info})())
-					self.movies[plugin_name][movie_info['uri']] = Movie(
-						source=plugin_name,
-						source_type=defaults.MOVIE_TYPE_STREAM,
-						provider=provider,
-						category=movie_info['category'],
-						title=movie_info['title'],
-						timestamp=movie_info['timestamp'],
-						duration=movie_info['duration'],
-						description=movie_info['description'],
-						url=None
-					)
+					self.movies[plugin_name][movie_info['uri']] = movie_info
 					self.categories.add(movie_info['category'])
 		for epg_list in self.timeline.values():
 			epg_list.sort(key=self.get_timestamp)
@@ -347,24 +335,23 @@ class SplPlugin(SplThread):
 			plugin_name = self.plugin_names[0]
 			self.providers.add(provider)
 			self.categories.add(category)
-			new_movie = Movie(
-				source=plugin_name,
-				source_type=defaults.MOVIE_TYPE_STREAM,
-				provider=provider,
-				category=category,
-				title=title,
-				timestamp=str(int(start)),
-				duration=stop-start,
-				description=desc,
-				url=url
+			new_movie = MovieInfo(
+				url = url,
+				mime = 'video/MP2T',
+				title = title,
+				category = category,
+				source = plugin_name,
+				source_type = defaults.MOVIE_TYPE_STREAM,
+				provider = provider,
+				timestamp = int(start),
+				duration = stop-start,
+				description = desc
 			)
-			new_movie.add_stream(media_type, '', url)
+
 			if not plugin_name in self.movies:
-				self.movies[plugin_name] = {}
-			self.movies[plugin_name][new_movie.uri()] = new_movie
-			movie_info = MovieInfo.movie_to_movie_info(new_movie, category)
-			movie_info['recordable']=True
-			result.append(movie_info)
+				self.movies[plugin_name]={}
+			self.movies[plugin_name][new_movie['uri']]=new_movie
+			result.append(new_movie)
 		print("epg loaded, {0} entries".format(count))
 		return result
 

@@ -27,7 +27,6 @@ ScriptPath = os.path.realpath(os.path.join(
 sys.path.append(os.path.abspath(ScriptPath))
 # own local modules
 from classes import MovieInfo
-from classes import Movie
 from scheduler import Scheduler
 from streamchannels import StreamChannel
 from jsonstorage import JsonStorage
@@ -60,21 +59,23 @@ class SplPlugin(StreamChannel):
 		plugin_name=self.plugin_names[0]
 		source_type=defaults.MOVIE_TYPE_STREAM
 		self.providers.add(provider)
-		new_movie = Movie(
-			source=plugin_name,
-			source_type=source_type,
-			provider=provider,
-			category='live',
-			title=provider+" Live",
-			timestamp="0",
-			duration=0,
-			description='',
-			url=full_url
+		new_movie = MovieInfo(
+			url = full_url,
+			mime = 'video/MP2T',
+			title = provider+' Live',
+			category = 'live',
+			source = plugin_name,
+			source_type = source_type,
+			provider = provider,
+			timestamp = 0,
+			duration = 0,
+			description = ''
 		)
-		new_movie.add_stream('ts','',full_url)
+
 		if not plugin_name in self.movies:
 			self.movies[plugin_name]={}
-		self.movies[plugin_name][new_movie.uri()]=new_movie
+		self.movies[plugin_name][new_movie['uri']]=new_movie
+
 
 
 	def load_xspf(self, file_name):

@@ -36,7 +36,6 @@ sys.path.append(os.path.abspath(ScriptPath))
 from jsonstorage import JsonStorage
 from messagehandler import Query
 from classes import MovieInfo
-from classes import Movie
 import defaults
 from epgprovider import EPGProvider
 import schnipsllogger
@@ -191,17 +190,8 @@ class SplPlugin(EPGProvider):
 				for movie_info in movie_data['epg_data'].values():
 					new_timeline[provider].append(type('', (object,), {
 													'timestamp': movie_info['timestamp'], 'movie_info': movie_info})())
-					self.movies[plugin_name][movie_info['uri']] = Movie(
-						source=plugin_name,
-						source_type=defaults.MOVIE_TYPE_STREAM,
-						provider=provider,
-						category=movie_info['category'],
-						title=movie_info['title'],
-						timestamp=movie_info['timestamp'],
-						duration=movie_info['duration'],
-						description=movie_info['description'],
-						url=movie_data['url']
-					)
+					self.movies[plugin_name][movie_info['uri']] = movie_info
+
 					# fill the search engine
 					whoosh_writer.update_document(
 						source=plugin_name,
@@ -209,6 +199,9 @@ class SplPlugin(EPGProvider):
 						title=movie_info['title'],
 						category=movie_info['category'],
 						uri=movie_info['uri'],
+						url=movie_info['url'],
+						mime=movie_info['mime'],
+						duration=movie_info['duration'],
 						description=movie_info['description'],
 						timestamp=datetime.datetime.fromtimestamp(int(movie_info['timestamp']))
 					)
@@ -304,24 +297,23 @@ class SplPlugin(EPGProvider):
 					self.providers.add(provider)
 					# EPG has its own special hardwired categories
 					#self.categories.add(category)
-					new_movie = Movie(
-						source=plugin_name,
-						source_type=defaults.MOVIE_TYPE_STREAM,
-						provider=provider,
-						category=category,
-						title=title,
-						timestamp=str(int(start)),
-						duration=stop-start,
-						description=desc,
-						url=url
+					new_movie = MovieInfo(
+						url = url,
+						mime = 'video/MP2T',
+						title = title,
+						category = category,
+						source = plugin_name,
+						source_type = defaults.MOVIE_TYPE_STREAM,
+						provider = provider,
+						timestamp = int(start),
+						duration = stop-start,
+						description = desc
 					)
-					new_movie.add_stream('ts', '', url)
+
 					if not plugin_name in self.movies:
-						self.movies[plugin_name] = {}
-					self.movies[plugin_name][new_movie.uri()] = new_movie
-					movie_info = MovieInfo.movie_to_movie_info(new_movie, category)
-					movie_info['recordable']=True
-					result[start]=movie_info
+						self.movies[plugin_name]={}
+					self.movies[plugin_name][new_movie['uri']]=new_movie
+					result[start]=new_movie
 				for json_provider in epg_json['providers']:
 					logger.debug("channel found in epg: {0}".format(json_provider))
 				logger.info("{0} epg loaded, {1} entries".format(provider,count))
@@ -353,12 +345,11 @@ class SplPlugin(EPGProvider):
 			movie_info_list = self.modref.message_handler.query(
 				Query(None, defaults.QUERY_MOVIE_ID, source+':'+provider+':0'))
 			if movie_info_list:
-				movie= movie_info_list[0]
-				url=movie.url
+				movie_info= movie_info_list[0]
 				with self.lock:
 					self.all_EPG_Data[provider]={
 						'requested':True,
-						'url':url,
+						'url':movie_info['url'],
 						'epg_data' : {},
 						'lastmodified' : 0
 					}
@@ -382,6 +373,10 @@ class SplPlugin(EPGProvider):
 				if processed_time_percentage>100:
 					processed_time_percentage=100
 				combined_movie_info=MovieInfo(
+					url=first_movie_info['url'],
+					mime=first_movie_info['mime'],
+					source=first_movie_info['source'],
+					source_type =first_movie_info['source_type'],
 					uri=first_movie_info['uri'],
 					title=first_movie_info['title'],
 					category=first_movie_info['category'],
@@ -395,6 +390,10 @@ class SplPlugin(EPGProvider):
 				combined_movie_info['recordable']=True
 			else:
 				combined_movie_info=MovieInfo(
+					url='',
+					mime='',
+					source='',
+					source_type ='',
 					uri=':'.join([self.stream_source,provider,'0']),
 					title='-',
 					category='',

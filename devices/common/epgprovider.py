@@ -24,7 +24,7 @@ from abc import abstractmethod
 # Non standard modules (install with pip)
 from whoosh import index
 from whoosh.fields import *
-from whoosh.qparser import MultifieldParser, OrGroup
+from whoosh.qparser import MultifieldParser, QueryParser
 from whoosh.qparser.dateparse import DateParserPlugin
 
 # Add the directory containing your module to the Python path (wants absolute paths)
@@ -51,8 +51,19 @@ class EPGProvider(SplThread):
 
 		self.runFlag = True
 		# init the search engine
-		self.whoosh_schema = Schema(source=TEXT(stored=True), provider=TEXT, title=TEXT, category=TEXT, uri=ID(
-			stored=True, unique=True), description=TEXT, timestamp=DATETIME)
+		self.whoosh_schema = Schema(
+			source=KEYWORD(stored=True),
+			provider=KEYWORD(stored=True),
+			title=TEXT(stored=True),
+			category=TEXT(stored=True),
+			uri=ID(stored=True, unique=True),
+			url=STORED,
+			mime=STORED,
+			duration=STORED,
+			source_type=STORED,
+			description=STORED,
+			timestamp=DATETIME(stored=True)
+		)
 		self.index_dir = os.path.join(child_dir, 'indexdir')
 		if not os.path.exists(self.index_dir):
 			os.mkdir(self.index_dir)
@@ -114,11 +125,38 @@ class EPGProvider(SplThread):
 							return res  # maximal number of results reached
 			return res
 		if queue_event.type == defaults.QUERY_MOVIE_ID:
-			elements = queue_event.params.split(':')
-			try:
-				return [self.movies[elements[0]][queue_event.params]]
-			except:
-				return []
+			elements = queue_event.params.split(':') # split the uri given in queue_event.params
+			res = []
+			if not elements[0] in self.get_plugin_names():
+				# its not our source
+				return res
+			with self.whoosh_ix.searcher() as searcher:
+				qp = QueryParser('id', schema=self.whoosh_ix.schema)
+				q = qp.parse(queue_event.params)
+				results = searcher.search(q)
+				for result in results:
+					try:
+						#movie_info = self.movies[result['source']][result['uri']]
+
+						movie_info = MovieInfo(
+							url = result['source'],
+							mime = result['mime'],
+							title = result['title'],
+							category = result['category'],
+							source = result['source'],
+							source_type = result['source'],
+							provider = result['provider'],
+							timestamp = result['timestamp'].timestamp(),
+							duration = result['duration'],
+							description = result['description']
+						)
+						movie_info['streamable'] = self.is_streamable()
+						movie_info['recordable'] = True
+						res.append(movie_info)
+					except Exception as e:
+						print('Exception in', self.get_plugin_names(),self.movies.keys(),result['source'],result['uri'], str(e))
+
+			return res
 		if queue_event.type == defaults.QUERY_AVAILABLE_MOVIES:
 			res = []
 			if not self.get_plugin_names()[0] in queue_event.params['select_source_values']:
@@ -147,13 +185,28 @@ class EPGProvider(SplThread):
 				results = searcher.search(q)
 				for result in results:
 					try:
-						movie = self.movies[result['source']][result['uri']]
-						movie_info = MovieInfo.movie_to_movie_info(movie, '')
+						#movie_info = self.movies[result['source']][result['uri']]
+
+						movie_info = MovieInfo(
+							url = result['source'],
+							mime = result['mime'],
+							title = result['title'],
+							category = result['category'],
+							source = result['source'],
+							source_type = result['source'],
+							provider = result['provider'],
+							timestamp = int(result['timestamp'].timestamp()),
+							duration = result['duration'],
+							description = result['description']
+						)
+
+
+
 						movie_info['streamable'] = self.is_streamable()
 						movie_info['recordable'] = True
 						res.append(movie_info)
 					except Exception as e:
-						print('Exception in', self.get_plugin_names()[0], e)
+						print('Exception in', self.get_plugin_names(),self.movies.keys(),result['source'],result['uri'], str(e))
 				return res
 			titles = queue_event.params['select_title'].split()
 			# descriptions=queue_event.params['select_description'].split()

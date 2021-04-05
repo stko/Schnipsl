@@ -28,7 +28,6 @@ ScriptPath = os.path.realpath(os.path.join(
 sys.path.append(os.path.abspath(ScriptPath))
 # own local modules
 from classes import MovieInfo
-from classes import Movie
 from scheduler import Scheduler
 from jsonstorage import JsonStorage
 
@@ -77,21 +76,22 @@ class SplPlugin(StreamChannel):
 								full_url=urljoin(server['url'],item_match.group(1))
 								provider=item_match.group(2)
 								self.providers.add(provider)
-								new_movie = Movie(
-									source=plugin_name,
-									source_type=source_type,
-									provider=provider,
-									category='live',
-									title=provider+" Live",
-									timestamp="0",
-									duration=0,
-									description='',
-									url=full_url
+								new_movie = MovieInfo(
+									url = full_url,
+									mime = 'video/MP2T',
+									title = provider+' Live',
+									category = 'live',
+									source = plugin_name,
+									source_type = source_type,
+									provider = provider,
+									timestamp = 0,
+									duration = 0,
+									description = ''
 								)
-								new_movie.add_stream('ts','',item_match.group(1))
+
 								if not plugin_name in self.movies:
 									self.movies[plugin_name]={}
-								self.movies[plugin_name][new_movie.uri()]=new_movie
+								self.movies[plugin_name][new_movie['uri']]=new_movie
 
 
 			except Exception as e:

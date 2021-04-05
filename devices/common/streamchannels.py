@@ -35,7 +35,6 @@ ScriptPath = os.path.realpath(os.path.join(
 sys.path.append(os.path.abspath(ScriptPath))
 # own local modules
 from classes import MovieInfo
-from classes import Movie
 from scheduler import Scheduler
 
 class StreamChannel(SplThread):
@@ -95,8 +94,8 @@ class StreamChannel(SplThread):
 			for plugin_name in self.plugin_names:
 				if plugin_name in queue_event.params['select_source_values']: # this plugin is one of the wanted
 					if plugin_name in self.movies: # are there any movies stored for this plugin?
-						for movie in self.movies[plugin_name].values():
-							if movie.provider in queue_event.params['select_provider_values']:
+						for movie_info in self.movies[plugin_name].values():
+							if movie_info['provider'] in queue_event.params['select_provider_values']:
 								
 								''' special for live streams: we have just one single live stream to report,
 
@@ -126,7 +125,6 @@ class StreamChannel(SplThread):
 
 
 								if max_result_count>0:
-									movie_info=MovieInfo.movie_to_movie_info(movie,'')
 									movie_info['streamable']=True
 									movie_info['recordable']=False
 									res.append(movie_info)

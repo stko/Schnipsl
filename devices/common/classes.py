@@ -7,71 +7,25 @@ class MovieInfo(dict):
 	'''helper class to store the movie clips information to sent to the client
 	'''
 
-	@classmethod
-	def movie_to_movie_info(cls,movie,category):
-		return MovieInfo(
-					movie.uri(),
-					movie.title,
-					category,
-					movie.provider,
-					movie.timestamp,
-					movie.duration,
-					movie.description
-				)
-
-	def __init__(self, uri, title, category, provider, timestamp, duration, description,query=None,next_title=None):
-		self['uri'] = uri
+	def __init__(self, url, mime, title, category, source, source_type, provider, timestamp, duration, description,query=None,next_title=None, uri=None):
+		if not uri:
+			self['uri'] = ':'.join([source,provider,str(timestamp)])
+		else:
+			self['uri']=uri
+		self['url'] = url
+		self['mime'] = mime
 		self['query'] = query
 		self['title'] = title
 		self['category'] = category		
 		self['next_title'] = next_title		# for live stream infos this will be used as the title of the 2. movie
+		self['source'] = source
+		self['source_type'] = source_type
 		self['provider'] = provider
 		self['timestamp'] = timestamp	# for live stream infos this will be used as the start time of the 2. movie
 		self['duration'] = duration 	# for live stream infos this will be used as already played time of the 1. movie in percent
 		self['description'] = description
-		self['description_show'] = False # helper flag for Vue
 		self['streamable'] = False # e.g. EPG items can not be streamed, only recorded
 		self['recordable'] = False # live streams can not be recorded, as they don't have a duration, they are endless
+		if source_type == defaults.MOVIE_TYPE_STREAM:
+			self['recordable'] = True
 
-
-class Movie:
-	'''object holds all information about a movie clip source
-	'''
-	def __init__(
-		self,
-		source='',
-		source_type=defaults.MOVIE_TYPE_RECORD,
-		provider='',
-		category='',
-		title='',
-		timestamp='',
-		duration='',
-		description='',
-		url=''
-		):
-		self.source=source
-		self.source_type=source_type
-		self.provider=provider
-		self.category=category
-		self.title=title
-		self.timestamp=timestamp
-		self.duration=duration
-		self.description=description
-		self.url=url
-		self.streams={}
-
-	def add_stream(self, type ,resolution, url):
-		'''stores the different media streams of a source
-		'''
-
-		if not type in self.streams:
-			self.streams[type]={}
-		self.streams[type][resolution]=url
-	
-	def uri(self):
-		'''returns a descriptor which shall be good enough to identify a source inside a source database, 
-		even if the uri comes from another snipsl instance
-
-		TODO: make the uri shorter
-		'''
-		return ':'.join([self.source,self.provider,self.timestamp])

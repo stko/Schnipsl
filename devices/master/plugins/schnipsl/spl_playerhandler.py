@@ -5,8 +5,6 @@
 # Standard module
 
 from messagehandler import Query
-from classes import MovieInfo
-from classes import Movie
 import defaults
 from splthread import SplThread
 import sys
@@ -70,7 +68,6 @@ class SplPlugin(SplThread):
 			self.refresh_player_movie_info(user_name)
 
 		if queue_event.type == defaults.PLAYER_PLAY_REQUEST or queue_event.type == defaults.PLAYER_PLAY_REQUEST_WITHOUT_DEVICE:
-			movie = queue_event.data['movie']
 			movie_info = queue_event.data['movie_info']
 			movie_uri = movie_info['uri']
 			current_time = queue_event.data['current_time']
@@ -98,7 +95,7 @@ class SplPlugin(SplThread):
 			self.player_save_state(queue_event.user)
 			self.stop_play(queue_event.user, device_friendly_name)
 			self.start_play(queue_event.user,
-							device_friendly_name, movie, movie_uri, movie_info, current_time)
+							device_friendly_name, movie_uri, movie_info, current_time)
 		if queue_event.type == defaults.MSG_SOCKET_PLAYER_KEY:
 			self.handle_keys(queue_event)
 		if queue_event.type == defaults.MSG_SOCKET_PLAYER_VOLUME:
@@ -116,7 +113,7 @@ class SplPlugin(SplThread):
 					user_player.uri.split(':')[:2])
 				short_movie_uri = ':'.join(uri.split(':')[:2])
 				if short_movie_uri == short_search_movie_uri:
-					self.send_player_movie_info(user_name, None, movie_info)
+					self.send_player_movie_info(user_name,  movie_info)
 
 		return queue_event
 
@@ -126,8 +123,8 @@ class SplPlugin(SplThread):
 		# print("playerhandler query handler", queue_event.type, queue_event.user, max_result_count)
 		return[]
 
-	def start_play(self, user, device_friendly_name, movie, uri, movie_info, current_time):
-		self.players[user] = type('', (object,), {'movie': movie,'uri': uri, 'device_friendly_name': device_friendly_name, 'player_info': type('', (object,), {
+	def start_play(self, user, device_friendly_name, uri, movie_info, current_time):
+		self.players[user] = type('', (object,), {'uri': uri,'movie_info': movie_info, 'device_friendly_name': device_friendly_name, 'player_info': type('', (object,), {
 			'play': True,
 			'position': 0,
 			'volume': 3,
@@ -136,21 +133,21 @@ class SplPlugin(SplThread):
 		})()
 		})()
 		self.modref.message_handler.queue_event(None, defaults.DEVICE_PLAY_REQUEST, {
-			'movie_url': movie.url, 'current_time': current_time, 'movie_mime_type': 'video/mp4', 'device_friendly_name': device_friendly_name})
-		self.send_player_movie_info(user, movie, movie_info)
+			'movie_url': movie_info['url'], 'current_time': current_time, 'movie_mime_type': 'video/mp4', 'device_friendly_name': device_friendly_name})
+		self.send_player_movie_info(user,  movie_info)
 		print('Start play for {0} {1} {2} {3}'.format(
-			user, device_friendly_name, uri, movie.url))
+			user, device_friendly_name, uri, movie_info['url']))
 
-	def send_player_movie_info(self, user_name, movie, movie_info=None):
+	def send_player_movie_info(self, user_name,  movie_info=None):
 		if not movie_info:
 			movie_info = {
-				'title': movie.title,
-				'category': movie.category,
-				'provider': movie.provider,
-				'timestamp': movie.timestamp,
-				'duration': movie.duration,
+				'title': 'empty',
+				'category':  'empty',
+				'provider':  'empty',
+				'timestamp': 0,
+				'duration':0,
 				'current_time': 0,
-				'description': movie.description
+				'description':  'empty',
 			}
 		self.modref.message_handler.queue_event(user_name, defaults.MSG_SOCKET_MSG, {
 			'type': defaults.MSG_SOCKET_PLAYER_MOVIE_INFO, 'config': movie_info})
@@ -241,13 +238,13 @@ class SplPlugin(SplThread):
 				player_info_copy.current_time=0 # if the movie is finished, set it back on start
 			print('------------------- player_save_state Save State Request -------------')
 			self.modref.message_handler.queue_event(user_name, defaults.PLAYER_SAVE_STATE_REQUEST, {
-				'movie': user_player.movie, 'player_info': player_info_copy}) 
+				'movie_info': user_player.movie_info, 'player_info': player_info_copy}) 
 
 	def refresh_player_movie_info(self, user_name):
 		if user_name in self.players:
 			user_player = self.players[user_name]
-			movie = user_player.movie
-			self.send_player_movie_info(user_name, movie)
+			movie_info = user_player.movie_info
+			self.send_player_movie_info(user_name, movie_info)
 
 	def handle_device_play_status(self, queue_event):
 		try:

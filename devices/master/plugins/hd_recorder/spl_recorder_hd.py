@@ -3,7 +3,7 @@
 
 from splthread import SplThread
 from messagehandler import Query
-from classes import Movie
+from classes import MovieInfo
 import defaults
 from scheduler import Scheduler
 from jsonstorage import JsonStorage
@@ -79,7 +79,7 @@ class SplPlugin(SplThread):
 			new_uri=queue_event.params
 			for record_movie in self.records.read('all',{}).values(): # 'all': read the whole config
 				if record_movie['new_uri']==new_uri:
-					return [Movie(
+					return [MovieInfo(
 								source=self.plugin_names[0],
 								source_type=defaults.MOVIE_TYPE_RECORD,
 								provider=record_movie['new_uri'].split(':')[1], # extracts the original provider back out of the uri
@@ -112,33 +112,33 @@ class SplPlugin(SplThread):
 		movie_info_list = self.modref.message_handler.query(
 			Query(None, defaults.QUERY_MOVIE_ID, uri))
 		if movie_info_list:
-			movie = movie_info_list[0]
-			uri = movie.uri()
+			movie_info = movie_info_list[0]
+			uri = movie_info['uri']
 			# do we have that record request already
 			existing_record = self.records.read(uri)
 			if not existing_record:
-				path = urlparse(movie.url).path
+				path = urlparse(movie_info['url']).path
 				ext = os.path.splitext(path)[1]
 				if ext.lower()=='.ts':
 					ext='.mp4'
 				uri_base64 = base64_encode(uri)
 				file_path = os.path.join(
 					self.config.read('path'), uri_base64+ext)
-				if movie.source_type == defaults.MOVIE_TYPE_RECORD:
+				if movie_info['source_type'] == defaults.MOVIE_TYPE_RECORD:
 					self.records.write(uri, {
 						# in case of a record we set start and duration to 0 to indicate that the recording can start immediadly & has no duration
 						'record_starttime': 0,
 						'record_duration': 0,
-						'provider': movie.provider,
-						'category': movie.category,
-						'title': movie.title,
-						'timestamp': movie.timestamp,
-						'duration': movie.duration,
-						'description': movie.description,
-						'url': movie.url,
+						'provider': movie_info['provider'],
+						'category': movie_info['category'],
+						'title': movie_info['title'],
+						'timestamp': movie_info['timestamp'],
+						'duration': movie_info['duration'],
+						'description': movie_info['description'],
+						'url': movie_info['url'],
 
 						'uri': uri,
-						'new_uri': self.plugin_names[0]+':'+movie.provider+':'+str(movie.timestamp),
+						'new_uri': self.plugin_names[0]+':'+movie_info['provider']+':'+str(movie_info['timestamp']),
 						'new_url': self.config.read('www-root')+uri_base64+ext,
 						'uuid': uuid,
 						'ext': ext,
@@ -146,22 +146,21 @@ class SplPlugin(SplThread):
 						'state': record_states.WAIT_FOR_RECORDING,
 						'errorcount': 4 # try to start the record up to 4 times before it finally failes
 					})
-				if movie.source_type == defaults.MOVIE_TYPE_STREAM:
+				if movie_info['source_type'] == defaults.MOVIE_TYPE_STREAM:
 					# recording a stream with a duration of 0 is a very bad idea, because it would never stop..
-					if movie.duration:
+					if movie_info['duration']:
 						self.records.write(uri, {
-							'record_starttime': int(movie.timestamp),
-							'record_duration': movie.duration,
-							'category': movie.category,
-							'title': movie.title,
-							'timestamp': movie.timestamp,
-							'duration': movie.duration,
-							'description': movie.description,
-							'url': movie.url,
+							'record_starttime': movie_info['timestamp'],
+							'record_duration': movie_info['duration'],
+							'category': movie_info['category'],
+							'title': movie_info['title'],
+							'timestamp': movie_info['timestamp'],
+							'duration': movie_info['duration'],
+							'description': movie_info['description'],
+							'url': movie_info['url'],
 
 							'uri': uri,
-							#'new_uri': self.plugin_names[0]+':'+movie.provider+':'+uri_base64,
-							'new_uri': self.plugin_names[0]+':'+movie.provider+':'+str(movie.timestamp),
+							'new_uri': self.plugin_names[0]+':'+movie_info['provider']+':'+str(movie_info['timestamp']),
 							'new_url': self.config.read('www-root')+uri_base64+ext,
 							'uuid': uuid,
 							'ext': ext,
@@ -172,7 +171,7 @@ class SplPlugin(SplThread):
 	
 	def check_for_records(self):
 		act_time = time.time()
-		for uri, record in self.records.config.items():
+		for uri, record in self.records.read('all','').items():
 			if record['state'] == record_states.WAIT_FOR_RECORDING:
 				if record['record_duration'] == 0:  # this is a record, which can be recorded immediadly
 					record['state'] = record_states.ACTUAL_RECORDING

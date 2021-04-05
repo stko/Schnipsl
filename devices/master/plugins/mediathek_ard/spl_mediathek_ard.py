@@ -33,7 +33,6 @@ sys.path.append(os.path.abspath(ScriptPath))
 from jsonstorage import JsonStorage
 from messagehandler import Query
 from classes import MovieInfo
-from classes import Movie
 import defaults
 from epgprovider import EPGProvider
 import schnipsllogger
@@ -143,7 +142,6 @@ class SplPlugin(EPGProvider):
 								while bytes:
 									unpack_file_handle.write(bytes)
 									bytes = archive_file_handle.read(4096)
-							new_whoosh_index_is_needed=True # re-index the data
 							self.reset_index() # destroy the existing index
 							self.logger.info('filmlist server list unpacked')
 					except  Exception as e:
@@ -157,8 +155,10 @@ class SplPlugin(EPGProvider):
 
 		try:
 			with open(file_name) as data:
+				self.reset_index()
 				with self.whoosh_ix.writer() as whoosh_writer:
 					count=0
+					self.logger.info(f"loading filmlist...")
 					for liste in JsonSlicer(data, ('X'), path_mode='map_keys'):
 						count+=1
 						data_array=liste[1]
@@ -201,42 +201,47 @@ class SplPlugin(EPGProvider):
 							plugin_name=self.plugin_names[0]
 							source_type=defaults.MOVIE_TYPE_RECORD
 						self.providers.add(provider)
-						new_movie = Movie(
-							source=plugin_name,
-							source_type=source_type,
-							provider=provider,
-							category=category,
-							title=data_array[2],
-							timestamp=data_array[16],
-							duration=self.time_string_to_secs(data_array[5]),
-							description=data_array[7],
-							url=data_array[8]
+						try: # livestream do not have a duration
+							timestamp=int(data_array[16])
+							timestamp_datetime=datetime.datetime.fromtimestamp(timestamp)
+						except:
+							timestamp=1
+							timestamp_datetime=datetime.datetime.fromtimestamp(timestamp)
+						movie_info = MovieInfo(
+							url = data_array[8],
+							mime = 'video/mp4',
+							title = data_array[2],
+							category = category,
+							source = plugin_name,
+							source_type = source_type,
+							provider = provider,
+							timestamp = timestamp,
+							duration = self.time_string_to_secs(data_array[5]),
+							description = data_array[7],
 						)
 						# fill the search engine
-						try: # livestream do not have a duration
-							timestamp=datetime.datetime.fromtimestamp(int(data_array[16]))
-						except:
-							timestamp=None
-						if new_whoosh_index_is_needed:
-							whoosh_writer.update_document(
-								source=plugin_name,
-								provider=provider,
-								title=data_array[2],
-								category=category,
-								uri=new_movie.uri(),
-								## because of potential resource problems, we do not make the description searchable
-								#description=data_array[7], 
-								timestamp=timestamp
-							)
-						new_movie.add_stream('mp4','',data_array[8])
+						whoosh_writer.update_document(
+							source=plugin_name,
+							source_type = source_type,
+							provider=provider,
+							title=data_array[2],
+							category=category,
+							uri=movie_info['uri'],
+							description=data_array[7], 
+							timestamp=timestamp_datetime,
+							url=movie_info['url'],
+							mime=movie_info['mime'],
+							duration=movie_info['duration']
+						)
 						if not plugin_name in self.movies:
 							self.movies[plugin_name]={}
-						self.movies[plugin_name][new_movie.uri()]=new_movie
+						# experimental: Do not save the movies in mem anymore, just in Whoosh
+						#self.movies[plugin_name][movie_info['uri']]=movie_info
 
 
-				print("filmlist loaded, {0} entries",count)
-		except  Exception as e:
-			self.logger.warning('failed to read filmlist')
+				self.logger.info(f"filmlist loaded, {count} entries")
+		except  Exception as  err:
+			self.logger.warning(f'failed to read filmlist:{err}')
 
 	def time_string_to_secs(self, time_string):
 		elements=time_string.split(':')
