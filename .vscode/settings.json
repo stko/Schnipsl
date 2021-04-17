@@ -1,0 +1,3 @@
+{
+    "python.analysis.extraPaths": ["./devices/common","./devices/master"]
+}
