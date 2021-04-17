@@ -182,7 +182,7 @@ class EPGProvider(SplThread):
 					qp.add_plugin(DateParserPlugin())
 				query_string += ' ' + queue_event.params['select_title']
 				q = qp.parse(query_string)
-				results = searcher.search(q)
+				results = searcher.search(q,limit=max_result_count, sortedby='timestamp')
 				for result in results:
 					try:
 						#movie_info = self.movies[result['source']][result['uri']]
