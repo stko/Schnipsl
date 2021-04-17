@@ -179,7 +179,7 @@ class SplPlugin(EPGProvider):
 
 					movie_infos_to_delete={}
 					max_age_timestamp=actual_time - 6* 60*60 # the movie started at least six hour ago
-					max_age_timestamp_datetime=datetime.datetime.fromtimestamp(actual_time)
+					max_age_timestamp_datetime=datetime.datetime.fromtimestamp(max_age_timestamp)
 					for start_time, movie_info in self.all_EPG_Data[provider]['epg_data'].items():
 						if int(start_time) <max_age_timestamp:
 							movie_infos_to_delete[start_time]=movie_info['uri']
@@ -188,7 +188,7 @@ class SplPlugin(EPGProvider):
 						new_epg_loaded=True
 					if movie_infos_to_delete:
 						qp = QueryParser('timestamp', schema=self.whoosh_ix.schema)
-						querystring = "timestamp:[19700101 to {0}]".format(max_age_timestamp_datetime.strftime('%Y%d%m%H%M%S'))
+						querystring = "timestamp:[19700101 to {0}]".format(max_age_timestamp_datetime.strftime('%Y%m%d%H%M%S'))
 						q = qp.parse(querystring)
 						whoosh_writer.delete_by_query(q)
 			#delete old provider
@@ -215,11 +215,12 @@ class SplPlugin(EPGProvider):
 				new_timeline[provider].append(type('', (object,), {
 												'timestamp': movie_info['timestamp'], 'movie_info': movie_info})())
 				self.movies[plugin_name][movie_info['uri']] = movie_info
-		for epg_list in self.timeline.values():
-			epg_list.sort(key=self.get_timestamp)
 		#replace the old data with the new one
 		self.providers = new_providers
 		self.timeline = new_timeline
+		# sort by datetime
+		for epg_list in self.timeline.values():
+			epg_list.sort(key=self.get_timestamp)
 
 
 	def search_channel_info(self, channel_epg_name):
