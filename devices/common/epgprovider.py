@@ -78,6 +78,10 @@ class EPGProvider(SplThread):
 		# used to reset an existing index by creating it again
 		self.whoosh_ix = index.create_in(self.index_dir, self.whoosh_schema)
 
+	def is_empty(self):
+		# tells if the actual db is empty
+		return self.whoosh_ix.is_empty()
+
 	@abstractmethod
 	def event_listener(self, queue_event):
 		''' react on events
@@ -148,7 +152,8 @@ class EPGProvider(SplThread):
 							# caution: when using timestamp(), it needs to be converted to int, otherways it will be a float
 							timestamp = int(result['timestamp'].timestamp()),
 							duration = result['duration'],
-							description = result['description']
+							description = result['description'],
+							uri=result['uri']
 						)
 						movie_info['streamable'] = self.is_streamable()
 						movie_info['recordable'] = True
