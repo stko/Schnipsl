@@ -80,6 +80,7 @@ class Kodi:
 			}
 		}
 		response=self.doJsonRPC(payload)
+		print('Kodi play_media',payload,response)
 		try:
 			self.cast_info['play']=response['result']=='OK'
 		except:
@@ -292,7 +293,6 @@ class SplPlugin(SplThread):
 		if queue_event.type == defaults.DEVICE_PLAY_REQUEST:
 			cast = self.get_cast(queue_event.data['device_friendly_name'])
 			if cast and cast.online:
-				print(repr(cast))
 				cast.play_media(
 					queue_event.data['movie_url'], queue_event.data['movie_mime_type'], current_time=queue_event.data['current_time'])
 
@@ -300,14 +300,12 @@ class SplPlugin(SplThread):
 			cast = self.get_cast(queue_event.data['device_friendly_name'])
 			if cast and cast.supports_pause:
 				cast.pause()
-				print(repr(cast))
 				self.send_device_play_status(
 					queue_event.data['device_friendly_name'], True)
 
 		if queue_event.type == defaults.DEVICE_PLAY_STOP:
 			cast = self.get_cast(queue_event.data['device_friendly_name'])
 			if cast and cast.online:
-				print(repr(cast))
 				cast.stop()
 				# 
 				time.sleep(self.config.read('stopdelay',0))
