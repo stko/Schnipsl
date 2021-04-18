@@ -261,7 +261,7 @@ class SplPlugin(EPGProvider):
 					value = "0,17,18"
 				new_queries += key + "=" + value + "&"
 		new_queries = new_queries.strip("&")
-		url = urlunparse((
+		url_epd_pids_only = urlunparse((
 			url_st.scheme,
 			url_st.netloc,
 			url_st.path,
@@ -272,8 +272,8 @@ class SplPlugin(EPGProvider):
 
 
 
-		attr=[os.path.join(	self.origin_dir, 'epg_grap.sh') , url, provider , str(self.config.read('epgloops')), str(self.config.read('epgtimeout'))] # process arguments
-		logger.debug  ("epg_grap started {0} {1} {2}".format(provider, url,repr(attr)))
+		attr=[os.path.join(	self.origin_dir, 'epg_grap.sh') , url_epd_pids_only, provider , str(self.config.read('epgloops')), str(self.config.read('epgtimeout'))] # process arguments
+		logger.debug  ("epg_grap started {0} {1} {2}".format(provider, url_epd_pids_only,repr(attr)))
 		try:
 			self.process = subprocess.Popen(attr, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 			cleaner = Timer(600, self.cleanProcess) # if epg_grap won't exit, try to terminate its process in 30 seconds
@@ -413,6 +413,11 @@ class SplPlugin(EPGProvider):
 					query=None
 				)
 				combined_movie_info['recordable']=False
+				# as we didn't found a matching EPG record, we "rewind" the provider update time by 2 hours to force another epg read
+				self.all_EPG_Data[provider]['lastmodified']=time.time()-2*60*60
+
+
+
 
 			self.modref.message_handler.queue_event(None, defaults.STREAM_ANSWER_PLAY_LIST, {'uri': queue_event.data['uri'],'movie_info':combined_movie_info})
 		except Exception as e:
