@@ -31,9 +31,9 @@
 				<v-icon size="24px">mdi-skip-previous</v-icon>
 			</v-btn>
 		</div>
-		<div id="minus10">
-			<v-btn icon class="mx-4" @click="player_key('minus10')">
-				<v-icon size="24px">mdi-rewind-10</v-icon>
+		<div id="minus5">
+			<v-btn icon class="mx-4" @click="player_key('minus5')">
+				<v-icon size="24px">mdi-rewind-5</v-icon>
 			</v-btn>
 		</div>
 		<div id="play">
@@ -41,9 +41,9 @@
 				<v-icon>{{ player_pos.play ? "mdi-pause" : "mdi-play" }}</v-icon>
 			</v-btn>
 		</div>
-		<div id="plus10">
-			<v-btn icon class="mx-4" @click="player_key('plus10')">
-				<v-icon size="24px">mdi-fast-forward-10</v-icon>
+		<div id="plus5">
+			<v-btn icon class="mx-4" @click="player_key('plus5')">
+				<v-icon size="24px">mdi-fast-forward-5</v-icon>
 			</v-btn>
 		</div>
 		<div id="stop">
@@ -254,7 +254,7 @@ export default {
 			if (this.volume_old==this.volume){ // for unknown reason this routine is triggered all the time- so we try to supress the effect here
 				return
 			}
-			console.log("Send volume");
+			console.log("Send volume", this.volume);
 			messenger.emit("player_volume", {
 				timer_vol: this.volume,
 			});
@@ -310,10 +310,10 @@ export default {
 			},
 			// setter
 			set: function (newValue) {
-				console.log("Send timer by setter");
+				console.log("Send timer by setter",newValue);
 				this.player_pos.current_time = newValue;
 				messenger.emit("player_time", {
-					timer_pos: this.player_pos.current_time,
+					timer_pos: newValue,
 				});
 			},
 		},
@@ -331,7 +331,7 @@ export default {
 		"name name name name name name name name name"
 		"series series series series series series series series series"
 		"provider provider day day time time duration duration show"
-		"volume device prev minus10 play plus10 stop bed position"
+		"volume device prev minus5 play plus5 stop bed position"
 		"description description description description description description description description description"
 		"dialogs dialogs dialogs dialogs dialogs dialogs dialogs dialogs dialogs";
 	background: grey;

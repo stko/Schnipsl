@@ -48,7 +48,7 @@ class SplPlugin(SplThread):
 
 		# do the plugin specific initialisation first
 		self.players = {}
-
+		self.toggle_print_line=False
 		# at last announce the own plugin
 		super().__init__(modref.message_handler, self)
 		modref.message_handler.add_event_handler(
@@ -179,13 +179,10 @@ class SplPlugin(SplThread):
 	def handle_time(self, queue_event):
 		user_name = queue_event.user
 		data = queue_event.data
-		percent_pos = data['timer_pos']
 		if user_name in self.players:
 			user_player = self.players[user_name]
-			player_info = user_player.player_info
-			pos = player_info.duration * percent_pos // 100
 			self.modref.message_handler.queue_event(None, defaults.DEVICE_PLAY_SETPOS, {
-				'device_friendly_name': user_player.device_friendly_name, 'pos': pos})
+				'device_friendly_name': user_player.device_friendly_name, 'pos': data['timer_pos']})
 
 	def handle_keys(self, queue_event):
 		user_name = queue_event.user
@@ -196,6 +193,11 @@ class SplPlugin(SplThread):
 			player_info = user_player.player_info
 			if data['keyid'] == 'prev':
 				player_info.current_time = 1
+				new_pos = True
+			if data['keyid'] == 'minus5':
+				player_info.current_time -= 5*60
+				if player_info.current_time < 0:
+					player_info.current_time = 1
 				new_pos = True
 			if data['keyid'] == 'minus10':
 				player_info.current_time -= 10*60
@@ -212,8 +214,13 @@ class SplPlugin(SplThread):
 						user_name, user_player.device_friendly_name)
 			if data['keyid'] == 'stop':
 				player_info.play = False
+				self.player_save_state(user_player)
 				self.stop_play(user_name, user_player.device_friendly_name)
 
+			if data['keyid'] == 'plus5':
+				if player_info.current_time + 5*60 < player_info.duration:
+					player_info.current_time += 5*60
+					new_pos = True
 			if data['keyid'] == 'plus10':
 				if player_info.current_time + 10*60 < player_info.duration:
 					player_info.current_time += 10*60
@@ -260,7 +267,11 @@ class SplPlugin(SplThread):
 						# self.modref.message_handler.queue_event(user_name, defaults.PLAYER_SAVE_STATE_REQUEST, {
 						#	'movie': user_player.movie, 'player_info': player_info})
 					if cast_info['state_change'] or cast_info['play']:
-						print(player_info.__dict__)
+						if self.toggle_print_line:
+							print(' *',player_info.__dict__, end='\r')
+						else:
+							print('* ',player_info.__dict__, end='\r')
+						self.toggle_print_line=not self.toggle_print_line
 						self.send_player_status(user_name, player_info)
 					# send the current data not as player_save_state to not override the previous real play times
 					player_info.current_time = cast_info['current_time']

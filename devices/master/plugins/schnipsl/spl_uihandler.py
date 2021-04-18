@@ -102,8 +102,8 @@ class SplPlugin(SplThread):
 						'device': queue_event.data['timer_dev'],
 					})
 		if queue_event.type == defaults.MSG_SOCKET_PLAYER_TIME:
-			self.play_time = queue_event.data['timer_pos'] * \
-				self.play_total_secs//100
+			#self.play_time = queue_event.data['timer_pos'] * self.play_total_secs//100
+			self.play_time = queue_event.data['timer_pos']
 		if queue_event.type == defaults.MSG_SOCKET_HOME_PLAY_REQUEST:
 			movie_uri = queue_event.data['uri']
 
