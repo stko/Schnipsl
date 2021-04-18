@@ -33,7 +33,9 @@
 	"category_evening":"Abends",
 	"category_now":"Jetzt",
 	"category_today":"Heute",
-	"category_tomorrow":"Morgen"
+	"category_tomorrow":"Morgen",
+	"category_last_week":"Letzte Woche",
+	"category_last_month":"Letzter Monat"
 }
 
 

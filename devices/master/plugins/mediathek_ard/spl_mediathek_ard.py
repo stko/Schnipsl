@@ -63,11 +63,11 @@ class SplPlugin(EPGProvider):
 
 		self.categories = [
 			{
-				'text': 'category_new',
+				'text': 'category_last_week',
 				'value': "['-1 week' to now]"
 			},
 			{
-				'text': 'category_actual',
+				'text': 'category_last_month',
 				'value': "['-4 week' to now]"
 			},
 		]
@@ -149,7 +149,7 @@ class SplPlugin(EPGProvider):
 			except  Exception as e:
 				print('failed filmlist server list download')
 		else:
-			if self.movies:
+			if not self.is_empty():
 				return # no need to load, we have already movie data
 		loader_remember_data={'provider':'','category':''}
 
