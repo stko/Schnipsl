@@ -9,7 +9,7 @@ class MovieInfo(dict):
 
 	def __init__(self, url, mime, title, category, source, source_type, provider, timestamp, duration, description,query=None,next_title=None, uri=None):
 		if not uri:
-			self['uri'] = ':'.join([source,provider,str(timestamp)])
+			self['uri'] = ':'.join([source,provider,str(timestamp),str(hash(title))]) # we use the hash of the title as ARD Mediathek has the same movie at the same time, but with different languages
 		else:
 			self['uri']=uri
 		self['url'] = url
