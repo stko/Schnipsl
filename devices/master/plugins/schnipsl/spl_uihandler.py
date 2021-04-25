@@ -61,7 +61,6 @@ class SplPlugin(SplThread):
 			self.plugin_id, 0, self.query_handler)
 		self.runFlag = True
 
-
 	def event_listener(self, queue_event):
 		''' try to send simulated answers
 		'''
@@ -87,7 +86,7 @@ class SplPlugin(SplThread):
 				# starts to play movie on device
 			print("plays schnipsl {0} on device ".format(
 				queue_event.data['uri']))
-			self.user_message(queue_event.user,'Play request')
+			self.user_message(queue_event.user, 'Play request')
 			movie_info_list = self.modref.message_handler.query(
 				Query(queue_event.user, defaults.QUERY_MOVIE_ID, queue_event.data['uri']))
 			if movie_info_list:
@@ -118,7 +117,7 @@ class SplPlugin(SplThread):
 					self.modref.message_handler.queue_event(queue_event.user, defaults.PLAYER_PLAY_REQUEST_WITHOUT_DEVICE, {
 						'user': queue_event.user,
 						'current_time': current_time,
-						'movie_info':movie_info_list[0],
+						'movie_info': movie_info_list[0],
 					})
 		if queue_event.type == defaults.MSG_SOCKET_EDIT_PLAY_ADD_REQUEST:
 			self.update_movie_list(queue_event)
@@ -159,7 +158,7 @@ class SplPlugin(SplThread):
 		if queue_event.type == defaults.MSG_SOCKET_EDIT_QUERY_AVAILABLE_CATEGORIES:
 			available_items = self.modref.message_handler.query(
 				Query(queue_event.user, defaults.QUERY_AVAILABLE_CATEGORIES, queue_event.data, unlimed_nr_of_results=True))
-			try: # object categories like from EPG can't be sorted
+			try:  # object categories like from EPG can't be sorted
 				available_items.sort()
 			except:
 				pass
@@ -190,7 +189,8 @@ class SplPlugin(SplThread):
 			movie_info = queue_event.data['movie_info']
 			user = queue_event.user
 			player_info = queue_event.data['player_info']
-			self.handle_player_save_state_request(user, movie_info, player_info)
+			self.handle_player_save_state_request(
+				user, movie_info, player_info)
 		if queue_event.type == defaults.STREAM_ANSWER_PLAY_LIST:
 			movie_uri = queue_event.data['uri']
 			movie_info = queue_event.data['movie_info']
@@ -211,9 +211,9 @@ class SplPlugin(SplThread):
 			movie_new_uri = queue_event.data['new_uri']
 			movie_new_url = queue_event.data['new_url']
 			uuid = queue_event.data['uuid']
-			sucess = queue_event.data['sucess']
-			if sucess:
-				if uuid in self.movielist:
+			record_state = queue_event.data['record_state']
+			if uuid in self.movielist:
+				if record_state == defaults.Record_States.RECORDING_FINISHED:
 					record_movie = self.movielist[uuid]
 					record_movie['type'] = defaults.MOVIE_TYPE_RECORD
 					record_movie['movie_info']['uri'] = movie_new_uri
@@ -223,12 +223,15 @@ class SplPlugin(SplThread):
 							'type': defaults.MSG_SOCKET_HOME_MOVIE_INFO_LIST, 'config': self.prepare_movie_list(user_name)})
 					self.modref.store.write_users_value(
 						'movielist', self.movielist)
+				else:
+					self.movielist[uuid]['damaged']=True
 		if queue_event.type == defaults.MSG_SOCKET_PLAYER_STOP_AND_RECORD or queue_event.type == defaults.MSG_SOCKET_HOME_RECORD_REQUEST:
 			if queue_event.type == defaults.MSG_SOCKET_PLAYER_STOP_AND_RECORD:
 				self.modref.message_handler.queue_event(queue_event.user, defaults.MSG_SOCKET_PLAYER_KEY, {
 					'keyid': 'stop'})
 				print('Stop play for user {0}'.format(queue_event.user))
-			uuid=self.get_movielist_uuid_by_movie_uri(queue_event.user,queue_event.data['uri'])
+			uuid = self.get_movielist_uuid_by_movie_uri(
+				queue_event.user, queue_event.data['uri'])
 			query = {
 				'category_items': [],
 				'category_values': [],
@@ -241,7 +244,8 @@ class SplPlugin(SplThread):
 				'title': ''
 			}
 			with self.lock:
-				self.create_new_movie_list_item(queue_event.user, None, queue_event.data['uri'], uuid, query, True)
+				self.create_new_movie_list_item(
+					queue_event.user, None, queue_event.data['uri'], uuid, query, True)
 			self.modref.message_handler.queue_event(queue_event.user, defaults.MSG_SOCKET_MSG, {
 				'type': defaults.MSG_SOCKET_HOME_MOVIE_INFO_LIST, 'config': self.prepare_movie_list(queue_event.user)})
 		# for further pocessing, do not forget to return the queue event
@@ -284,10 +288,10 @@ class SplPlugin(SplThread):
 					{
 						'uuid': uuid,
 						'icon': 'mdi-magnify',
-								'iconClass': 'red lighten-1 white--text',
-								'query': movie_list_item['query'],
-								'movie_info': movie_list_item['movie_info'],
-								'current_time': ''
+						'iconClass': 'red lighten-1 white--text',
+						'query': movie_list_item['query'],
+						'movie_info': movie_list_item['movie_info'],
+						'current_time': ''
 					}
 				)
 			if movie_list_item['type'] == defaults.MOVIE_TYPE_RECORD_TEMPLATE:
@@ -295,10 +299,10 @@ class SplPlugin(SplThread):
 					{
 						'uuid': uuid,
 						'icon': 'mdi-record-rec',
-								'iconClass': 'red lighten-1 white--text',
-								'query': movie_list_item['query'],
-								'movie_info': movie_list_item['movie_info'],
-								'current_time': ''
+						'iconClass': 'red lighten-1 white--text',
+						'query': movie_list_item['query'],
+						'movie_info': movie_list_item['movie_info'],
+						'current_time': ''
 					}
 				)
 			if movie_list_item['type'] == defaults.MOVIE_TYPE_RECORD:
@@ -309,10 +313,10 @@ class SplPlugin(SplThread):
 					{
 						'uuid': uuid,
 						'icon': 'mdi-play-pause',
-								'iconClass': 'blue white--text',
-								'query': movie_list_item['query'],
-								'movie_info': movie_list_item['movie_info'],
-								'current_time': user_current_time
+						'iconClass': 'blue white--text',
+						'query': movie_list_item['query'],
+						'movie_info': movie_list_item['movie_info'],
+						'current_time': user_current_time
 					}
 				)
 			if movie_list_item['type'] == defaults.MOVIE_TYPE_STREAM:
@@ -320,10 +324,10 @@ class SplPlugin(SplThread):
 					{
 						'uuid': uuid,
 						'icon': 'mdi-radio-tower',
-								'iconClass': 'green lighten-1 white--text',
-								'query': movie_list_item['query'],
-								'movie_info': movie_list_item['movie_info'],
-								'current_time': ''
+						'iconClass': 'green lighten-1 white--text',
+						'query': movie_list_item['query'],
+						'movie_info': movie_list_item['movie_info'],
+						'current_time': ''
 					}
 				)
 			if movie_list_item['type'] == defaults.MOVIE_TYPE_TIMER:
@@ -331,10 +335,10 @@ class SplPlugin(SplThread):
 					{
 						'uuid': uuid,
 						'icon': 'mdi-clock',
-								'iconClass': 'amber white--text',
-								'query': movie_list_item['query'],
-								'movie_info': movie_list_item['movie_info'],
-								'current_time': ''
+						'iconClass': 'amber white--text',
+						'query': movie_list_item['query'],
+						'movie_info': movie_list_item['movie_info'],
+						'current_time': ''
 					}
 				)
 		return res
@@ -400,7 +404,7 @@ class SplPlugin(SplThread):
 				movie_list_entry = {
 
 					'clients': {},
-
+					'damaged': False
 				}
 				movie_list_entry['clients'][user] = {
 					'current_time': 0}
@@ -450,13 +454,12 @@ class SplPlugin(SplThread):
 	def send_home_movie_list(self, original_queue_event):
 		#new_event = copy.copy(original_queue_event)
 		#new_event.type = defaults.MSG_SOCKET_MSG
-		#new_event.data = {
+		# new_event.data = {
 		#	'type': defaults.MSG_SOCKET_HOME_MOVIE_INFO_LIST, 'config': self.prepare_movie_list(original_queue_event.user)}
 		#print("new_event", new_event.data['config'])
-		#self.modref.message_handler.queue_event_obj(new_event)
+		# self.modref.message_handler.queue_event_obj(new_event)
 		self.modref.message_handler.queue_event(original_queue_event.user, defaults.MSG_SOCKET_MSG, {
 			'type': defaults.MSG_SOCKET_HOME_MOVIE_INFO_LIST, 'config': self.prepare_movie_list(original_queue_event.user)})
-
 
 	def get_movielist_uuid_by_movie_uri(self, user, movie_uri):
 		for uuid, search_movie in self.movielist.items():
@@ -483,7 +486,7 @@ class SplPlugin(SplThread):
 
 	def timer_record_request(self):
 		for uuid, movie_list_item in self.movielist.items():
-			if movie_list_item['type'] == defaults.MOVIE_TYPE_TIMER:
+			if movie_list_item['type'] == defaults.MOVIE_TYPE_TIMER and not movie_list_item['damaged']:
 				self.modref.message_handler.queue_event(None, defaults.TIMER_RECORD_REQUEST, {
 					'uri': movie_list_item['movie_info']['uri'], 'uuid': uuid})
 

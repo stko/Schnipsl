@@ -5,6 +5,7 @@ from splthread import SplThread
 from messagehandler import Query
 from classes import MovieInfo
 import defaults
+from defaults import Record_States
 from scheduler import Scheduler
 from jsonstorage import JsonStorage
 import json
@@ -31,13 +32,9 @@ ScriptPath = os.path.realpath(os.path.join(
 # Add the directory containing your module to the Python path (wants absolute paths)
 sys.path.append(os.path.abspath(ScriptPath))
 
+import schnipsllogger
 
-class record_states:
-	WAIT_FOR_RECORDING = 0
-	ACTUAL_RECORDING = 1
-	RECORDING_FINISHED = 2
-	RECORDING_FAILED = 3  # something went wrong, no result
-
+logger = schnipsllogger.getLogger(__name__)
 
 class SplPlugin(SplThread):
 	plugin_id = 'record_hd'
@@ -74,7 +71,7 @@ class SplPlugin(SplThread):
 	def query_handler(self, queue_event, max_result_count):
 		''' try to send simulated answers
 		'''
-		# print("hd_recorder query handler", queue_event.type,  queue_event.user, max_result_count)
+		# logger.info(f"hd_recorder query handler" {queue_event.type}  {queue_event.user} {max_result_count"})
 		if queue_event.type == defaults.QUERY_MOVIE_ID:
 			new_uri=queue_event.params
 			for record_movie in self.records.read('all',{}).values(): # 'all': read the whole config
@@ -88,7 +85,8 @@ class SplPlugin(SplThread):
 								timestamp=record_movie['timestamp'],
 								duration=record_movie['duration'],
 								description=record_movie['description'],
-								url=record_movie['new_url']
+								url=record_movie['new_url'],
+								mime=record_movie['mime']
 
 					)]
 
@@ -117,11 +115,10 @@ class SplPlugin(SplThread):
 			# do we have that record request already
 			existing_record = self.records.read(uri)
 			if not existing_record:
-				path = urlparse(movie_info['url']).path
-				ext = os.path.splitext(path)[1]
-				if ext.lower()=='.ts':
-					ext='.mp4'
 				uri_base64 = base64_encode(uri)
+				ext='.mp4'
+				if movie_info['mime']=='video/MP2T':
+					ext='.mp4'
 				file_path = os.path.join(
 					self.config.read('path'), uri_base64+ext)
 				if movie_info['source_type'] == defaults.MOVIE_TYPE_RECORD:
@@ -138,12 +135,11 @@ class SplPlugin(SplThread):
 						'url': movie_info['url'],
 
 						'uri': uri,
-						'new_uri': self.plugin_names[0]+':'+movie_info['provider']+':'+str(movie_info['timestamp']),
+						'new_uri': self.plugin_names[0]+':'+':'.join(movie_info['uri'].split(':')[1:]),
 						'new_url': self.config.read('www-root')+uri_base64+ext,
 						'uuid': uuid,
-						'ext': ext,
 						'file_path': file_path,
-						'state': record_states.WAIT_FOR_RECORDING,
+						'state': Record_States.WAIT_FOR_RECORDING,
 						'errorcount': 4 # try to start the record up to 4 times before it finally failes
 					})
 				if movie_info['source_type'] == defaults.MOVIE_TYPE_STREAM:
@@ -158,31 +154,32 @@ class SplPlugin(SplThread):
 							'duration': movie_info['duration'],
 							'description': movie_info['description'],
 							'url': movie_info['url'],
-
+							'mime': movie_info['mime'],
 							'uri': uri,
-							'new_uri': self.plugin_names[0]+':'+movie_info['provider']+':'+str(movie_info['timestamp']),
+							'new_uri': self.plugin_names[0]+':'+':'.join(movie_info['uri'].split(':')[1:]),
 							'new_url': self.config.read('www-root')+uri_base64+ext,
 							'uuid': uuid,
-							'ext': ext,
 							'file_path': file_path,
-							'state': record_states.WAIT_FOR_RECORDING,
+							'state': Record_States.WAIT_FOR_RECORDING,
 							'errorcount': 4 # try to start the record up to 4 times before it finally failes
 						})
 	
 	def check_for_records(self):
 		act_time = time.time()
 		for uri, record in self.records.read('all','').items():
-			if record['state'] == record_states.WAIT_FOR_RECORDING:
+			if record['state'] == Record_States.WAIT_FOR_RECORDING:
 				if record['record_duration'] == 0:  # this is a record, which can be recorded immediadly
-					record['state'] = record_states.ACTUAL_RECORDING
+					record['state'] = Record_States.ACTUAL_RECORDING
 					self.records.write(uri, record)
 					self.recording(record)
 					continue
-				# something went wrong, the record time was in the past
+				# something went wrong, the record time was in the past. Mark the entry as failed
 				if record['record_starttime']+record['record_duration'] < act_time:
-					record['state'] = record_states.RECORDING_FAILED
+					record['state'] = Record_States.RECORDING_FAILED
+				# something went wrong during recording
+				if record['state'] == Record_States.RECORDING_FAILED:
 					self.records.write(uri, record)
-					self.deploy_record_result(record, False)
+					self.deploy_record_result(record, record['state'])
 					continue
 				# it's time to start
 				if record['record_starttime']-self.config.read('padding_secs', 300) <= act_time and record['record_starttime']+record['record_duration'] > act_time:
@@ -190,7 +187,7 @@ class SplPlugin(SplThread):
 					if record['record_starttime'] < act_time:
 						record['starttime'] = str(act_time)
 						record['duration'] = record['duration'] - (act_time - record['record_starttime'])
-					record['state'] = record_states.ACTUAL_RECORDING
+					record['state'] = Record_States.ACTUAL_RECORDING
 					self.records.write(uri, record)
 					self.recording(record)
 					continue
@@ -207,45 +204,47 @@ class SplPlugin(SplThread):
 				if not self.record_threats[uri].is_alive():
 					del(self.record_threats[uri])  # we destroy the thread
 					self.deploy_record_result(record,
-						record['state'] == record_states.RECORDING_FINISHED)
+						record['state'] )
 					self.last_recorded_time=act_time
 			if self.last_recorded_time> act_time-5*60:
 				return # don't do any delete action if the last record is just 5 mins ago to give the UI some time to adapt the new movie
-			if record['state'] == record_states.RECORDING_FINISHED or record['state'] == record_states.RECORDING_FAILED:
+			if record['state'] == Record_States.ACTUAL_RECORDING and not uri in self.record_threats: # seems to be a zombie record
+				records_to_delete[uri]=record
+				self.deploy_record_result(record,
+						Record_States.RECORDING_FAILED )
+			if record['state'] == Record_States.RECORDING_FINISHED or record['state'] == Record_States.RECORDING_FAILED:
 				new_uri=record['new_uri']
-				#print('Record on disk:',new_uri) 
+				#logger.info(f'Record on disk: {new_uri}') 
 				if not new_uri in valid_movieuri_list:
 					records_to_delete[uri]=record
 		# some debug output
 		#for uri in valid_movieuri_list:
-		#	print('recoder uri:',uri)
+		#	logger.info(f'recoder uri: {uri}')
 		if records_to_delete:
 			# go through the list of records to be deleted
 			for uri,  record in records_to_delete.items():
 				# delete the file
 				file_path=record['file_path']
-				print('try to delete file',file_path )
+				logger.info(f'try to delete file {file_path}' )
 				if os.path.exists(file_path):
 					try:
 						os.remove(file_path)
-						del(self.records.config[uri])
-						self.records.save()
-						print('file deleted',file_path )
+						logger.info(f'file deleted {file_path}' )
 					except Exception as ex:
-						print("Cant delete record file {0}. Error: {1}".format(file_path,str(ex)))
+						logger.warning("Cant delete record file {0}. Error: {1}".format(file_path,str(ex)))
 				else:
 					# remove the entry
-					print('remove the entry',uri )
-					del(self.records.config[uri])
-					self.records.save()
+					logger.info(f'file not found, just remove the entry {uri}' )
+				del(self.records.config[uri])
+			self.records.save()
 
-	def deploy_record_result(self, record, sucess):
+	def deploy_record_result(self, record, record_state):
 		self.modref.message_handler.queue_event(None, defaults.TIMER_RECORD_RESULT, {
-			'new_uri':record['new_uri'], 'new_url':record['new_url'], 'uuid': record['uuid'], 'sucess': sucess})
+			'new_uri':record['new_uri'], 'new_url':record['new_url'], 'uuid': record['uuid'], 'record_state': record_state})
 
 	def recording(self, record):
 		uri=record['uri']
-		print('try to record ', uri)
+		logger.info(f'try to record {uri}')
 		threat = threading.Thread(target=record_thread, args=(
 			record, self.config.read('padding_secs', 300)))
 		self.record_threats[uri] = threat
@@ -253,38 +252,44 @@ class SplPlugin(SplThread):
 
 
 def record_thread(record, padding_time):
-	ext = record['ext']
 	file_path = record['file_path']
 	url = record['url']
 	act_time = time.time()
 	remaining_time = record['record_starttime']+record['record_duration']-act_time
+
+	################ debug tweak to keep the records short - reduce the recors to 30 secs.
+	remaining_time=25
+	padding_time=5
+
 	attr = None
 	# does the record has a duration? then we've use ffmeg to limit the duration
 	if record['record_duration']:
-		attr = ['ffmpeg', '-y', '-i', url, '-vcodec', 'copy', '-acodec', 'copy',
-				'-map', '0:v', '-map', '0:a', '-t', str(remaining_time+padding_time), '-f', 'mp4' , file_path]
+		# attr = ['ffmpeg', '-y', '-i', url, '-vcodec', 'copy', '-acodec', 'copy', 	'-map', '0:v', '-map', '0:a', '-t', str(remaining_time+padding_time), '-f', 'ts' , file_path]
+		attr = ['ffmpeg', '-y', '-i', url, '-vcodec', 'copy', '-acodec', 'copy', '-t', str(remaining_time+padding_time), file_path]
 	else:
 		attr = ['curl', '-s', url, '-o', file_path]  # process arguments
 	if attr:
-		print("recorder started", repr(attr))
+		logger.info(f"recorder started {repr(attr)}" )
 		try:
 			completed_process = subprocess.run(attr)
 			if completed_process.returncode:
-				print("recorder ended with an error:\n%s" %
+				logger.warning("recorder ended with an error:\n%s" %
 					  (completed_process.returncode))
 				try:
 					record['errorcount']-=1
 				except:
 					record['errorcount']=4 # just a temporary fix to avoid a crash on older configs
 				if record['errorcount']<=0:
-					record['state'] = record_states.RECORDING_FAILED
+					record['state'] = Record_States.RECORDING_FAILED
+				else: # give it another try
+					record['state'] =Record_States.WAIT_FOR_RECORDING
 			else:
-				print("recorder ended")
-				record['state'] = record_states.RECORDING_FINISHED
+				logger.info("recorder ended")
+				record['state'] = Record_States.RECORDING_FINISHED
 		except Exception as ex:
-			print("recorder could not be started. Error: %s" % (ex))
+			logger.warning("recorder could not be started. Error: %s" % (ex))
 	else:
-		record['state'] = record_states.RECORDING_FAILED
+		record['state'] = Record_States.RECORDING_FAILED
 
 
 def base64_encode(string):
