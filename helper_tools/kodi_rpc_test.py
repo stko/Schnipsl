@@ -6,7 +6,7 @@ def main():
     if len(sys.argv)>2:
         url = 'http://'+sys.argv[2]+':8080/jsonrpc'
     else:
-        url = "http://192.168.1.127:8080/jsonrpc"
+        url = "http://192.168.1.79:8080/jsonrpc"
     if len(sys.argv)>3:
         player_id = int(sys.argv[3])
     else:
