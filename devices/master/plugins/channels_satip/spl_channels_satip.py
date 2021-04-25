@@ -70,7 +70,7 @@ class SplPlugin(StreamChannel):
 			timestamp = 0,
 			duration = 0,
 			description = '',
-			uri = ':'.join([plugin_name,provider,'0']) # we have to handmade the uri here to not have the title hash as part of it
+			uri = ':'.join([plugin_name,provider,'0']) # we have to handmade the uri here to not have the title crc32 hash as part of it
 		)
 
 		if not plugin_name in self.movies:

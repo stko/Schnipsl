@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 
 import defaults
+# we need the binascii crc32 as a hash for the uri title, as it came out that the python build-in hash uses a session salt, so the resulting uri were different all the time
+import binascii
 
 class MovieInfo(dict):
 	'''helper class to store the movie clips information to sent to the client
@@ -9,7 +11,7 @@ class MovieInfo(dict):
 
 	def __init__(self, url, mime, title, category, source, source_type, provider, timestamp, duration, description,query=None,next_title=None, uri=None):
 		if not uri:
-			self['uri'] = ':'.join([source,provider,str(timestamp),str(hash(title))]) # we use the hash of the title as ARD Mediathek has the same movie at the same time, but with different languages
+			self['uri'] = ':'.join([source,provider,str(timestamp),str(binascii.crc32(title.encode()))]) # we use the hash of the title as ARD Mediathek has the same movie at the same time, but with different languages
 		else:
 			self['uri']=uri
 		self['url'] = url
