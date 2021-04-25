@@ -8,80 +8,114 @@
 					<v-icon>mdi-delete</v-icon>
 				</v-btn>
 				<v-divider vertical></v-divider>
-				<v-spacer></v-spacer>
 			</v-toolbar-items>
+			<v-spacer></v-spacer>
+			<v-toolbar-title>{{ $t("edit_select_header") }}</v-toolbar-title>
 		</v-toolbar>
-		{{ $t("edit_select_header") }}
-		<v-col cols="13">
+		<v-container>
 			<v-form ref="edit_select">
-				<v-text-field
-					v-model="query.name"
-					:label="$t('edit_select_name')"
-				></v-text-field>
-				<v-switch
-					v-model="query.recording"
-					:label="$t('edit_select_recording')"
-					color="orange"
-					value="True"
-					hide-details
-				></v-switch>
-				<v-divider/>
-				<v-autocomplete
-					v-model="query.source_values"
-					:items="query.source_items"
-					outlined
-					chips
-					small-chips
-					:label="$t('edit_select_source')"
-					multiple
-					@input="edit_query_available_providers()"
-				></v-autocomplete>
-				<v-autocomplete
-					v-model="query.provider_values"
-					:items="query.provider_items"
-					outlined
-					chips
-					small-chips
-					:label="$t('edit_select_provider')"
-					multiple
-					@input="edit_query_available_categories()"
-				></v-autocomplete>
-				<v-autocomplete
-					v-model="query.category_values"
-					:items="query.category_items"
-					outlined
-					chips
-					small-chips
-					:label="$t('edit_select_category')"
-					multiple
-				></v-autocomplete>
-				<v-text-field
-					v-model="query.title"
-					:label="$t('edit_select_title')"
-				></v-text-field>
-				<v-text-field
-					v-model="query.description"
-					:label="$t('edit_select_description')"
-				></v-text-field>
+				<v-row>
+					<v-col>
+						<v-text-field
+							v-model="query.name"
+							:label="$t('edit_select_name')"
+						></v-text-field>
+					</v-col>
+					<v-col>
+						<v-switch
+							v-model="query.recording"
+							:label="$t('edit_select_recording')"
+							color="orange"
+							value="True"
+							hide-details
+						></v-switch>
+					</v-col>
+				</v-row>
+				<v-row>
+					<v-col>
+						<v-autocomplete
+							v-model="query.source_values"
+							:items="query.source_items"
+							outlined
+							chips
+							small-chips
+							:label="$t('edit_select_source')"
+							multiple
+							@input="edit_query_available_providers()"
+						></v-autocomplete>
+					</v-col>
+					<v-col>
+						<v-autocomplete
+							v-model="query.provider_values"
+							:items="query.provider_items"
+							outlined
+							chips
+							small-chips
+							:label="$t('edit_select_provider')"
+							multiple
+							@input="edit_query_available_categories()"
+						></v-autocomplete>
+					</v-col>
+				</v-row>
+				<v-row>
+					<v-col>
+						<v-autocomplete
+							v-model="query.category_values"
+							:items="query.category_items"
+							outlined
+							chips
+							small-chips
+							:label="$t('edit_select_category')"
+							multiple
+						></v-autocomplete>
+					</v-col>
+				</v-row>
+				<v-row>
+					<v-col>
+						<v-text-field
+							v-model="query.title"
+							:label="$t('edit_select_title')"
+						></v-text-field>
+					</v-col>
+					<v-col>
+						<v-text-field
+							v-model="query.description"
+							:label="$t('edit_select_description')"
+						></v-text-field>
+					</v-col>
+				</v-row>
+				<v-row>
+					<v-btn
+						icon
+						@click="edit_query_available_movies(prev_page)"
+						:disabled="this.prev_page < 0"
+					>
+						<v-icon>mdi-chevron-left</v-icon>
+					</v-btn>
+					<v-spacer></v-spacer>
+					<v-btn icon @click="edit_query_available_movies(0)">
+						<v-icon>mdi-magnify</v-icon>
+					</v-btn>
+					<v-spacer></v-spacer>
+					<v-btn
+						icon
+						@click="edit_query_available_movies(next_page)"
+						:disabled="this.next_page < 0"
+					>
+						<v-icon>mdi-chevron-right</v-icon>
+					</v-btn>
+				</v-row>
 			</v-form>
-			<v-row>
-			<v-btn icon @click="edit_query_available_movies(prev_page)" :disabled="this.prev_page<0">
-				<v-icon>mdi-chevron-left</v-icon>
-			</v-btn>
-			<v-spacer></v-spacer>
-			<v-btn icon @click="edit_query_available_movies(0)">
-				<v-icon>mdi-magnify</v-icon>
-			</v-btn>
-			<v-spacer></v-spacer>
-			<v-btn icon @click="edit_query_available_movies(next_page)" :disabled="this.next_page<0">
-				<v-icon>mdi-chevron-right</v-icon>
-			</v-btn>
-			</v-row>
-		</v-col>
-		<v-divider></v-divider>
+		</v-container>
 		<v-list>
 			<v-list-item v-for="movie_info in movie_info_list" :key="movie_info.uri">
-				<v-list-item-content v-on="movie_info.streamable ? { click : () => requestPlay(movie_info.uri) } : {}" >
+				<v-list-item-content
+					v-on="
+						movie_info.streamable
+							? { click: () => requestPlay(movie_info.uri) }
+							: {}
+					"
+				>
 					<v-list-item-title
 						v-text="movie_info.title + ' • ' + movie_info.category"
 					></v-list-item-title>
@@ -104,10 +138,20 @@
 				</v-list-item-content>
 
 				<v-list-item-action>
-					<v-btn icon class="mx-4" v-if="movie_info.streamable" @click="requestPlayAdd(movie_info.uri)">
+					<v-btn
+						icon
+						class="mx-4"
+						v-if="movie_info.streamable"
+						@click="requestPlayAdd(movie_info.uri)"
+					>
 						<v-icon size="24px">mdi-video-plus</v-icon>
 					</v-btn>
-					<v-btn icon class="mx-4" v-if="movie_info.recordable" @click="requestRecordAdd(movie_info.uri)">
+					<v-btn
+						icon
+						class="mx-4"
+						v-if="movie_info.recordable"
+						@click="requestRecordAdd(movie_info.uri)"
+					>
 						<v-icon size="24px">mdi-record</v-icon>
 					</v-btn>
 					<v-btn
@@ -149,8 +193,8 @@
 import router from "../router";
 import messenger from "../messenger";
 import dayjs from "dayjs";
-import dayjsPluginUTC from 'dayjs-plugin-utc'
-dayjs.extend(dayjsPluginUTC, { parseToLocal: true })
+import dayjsPluginUTC from "dayjs-plugin-utc";
+dayjs.extend(dayjsPluginUTC, { parseToLocal: true });
 
 export default {
 	name: "Edit",
@@ -251,9 +295,9 @@ export default {
 			}
 			if (type == "edit_query_available_categories_answer") {
 				// in case we have seperate text and values, we need to localise the text first
-				data.select_items.forEach(element => {
-					if (element.text){
-						element.text=this.$t(element.text)
+				data.select_items.forEach((element) => {
+					if (element.text) {
+						element.text = this.$t(element.text);
 					}
 				});
 				this.query.category_items = data.select_items;
@@ -295,7 +339,7 @@ export default {
 				select_category_values: this.query.category_values,
 				select_title: this.query.title,
 				select_description: this.query.description,
-				query_start_page: query_start_page
+				query_start_page: query_start_page,
 			});
 		},
 		localDate(timestamp, locale) {
