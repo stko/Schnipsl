@@ -71,6 +71,11 @@ class SplPlugin(EPGProvider):
 				'value': "['-4 week' to now]"
 			},
 		]
+		# additional to our whoosh db, we need to cache the providers to not have
+		# to read through the huge whoosh db at start to reconstruct the provider list again
+		self.provider_storage = JsonStorage(os.path.join(
+			self.origin_dir, "provider_cache.json"), {'provider_cache':[]})
+		self.providers = set(self.provider_storage.read('provider_cache'))
 
 
 
@@ -110,7 +115,6 @@ class SplPlugin(EPGProvider):
 			filmlist_time_stamp= os.path.getmtime(file_name)
 		except:
 			filmlist_time_stamp=0
-		new_whoosh_index_is_needed=False
 		if filmlist_time_stamp<time.time() - 60*60*48: # file is older as 48 hours
 			'''
 			Bootstrap to read the filmlist:
@@ -149,7 +153,7 @@ class SplPlugin(EPGProvider):
 			except  Exception as e:
 				print('failed filmlist server list download')
 		else:
-			if not self.is_empty():
+			if not self.is_empty() and self.providers:
 				return # no need to load, we have already movie data
 		loader_remember_data={'provider':'','category':''}
 
@@ -238,7 +242,7 @@ class SplPlugin(EPGProvider):
 						# experimental: Do not save the movies in mem anymore, just in Whoosh
 						#self.movies[plugin_name][movie_info['uri']]=movie_info
 
-
+				self.provider_storage.write('provider_cache',list(self.providers))
 				self.logger.info(f"filmlist loaded, {count} entries")
 		except  Exception as  err:
 			self.logger.warning(f'failed to read filmlist:{err}')
