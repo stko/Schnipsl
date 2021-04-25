@@ -203,7 +203,8 @@ class EPGProvider(SplThread):
 							# caution: when using timestamp(), it needs to be converted to int, otherways it will be a float
 							timestamp = int(result['timestamp'].timestamp()),
 							duration = result['duration'],
-							description = result['description']
+							description = result['description'],
+							uri=result['uri']
 						)
 
 
