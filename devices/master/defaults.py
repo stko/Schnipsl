@@ -76,3 +76,12 @@ MOVIE_TYPE_RECORD_TEMPLATE='recordtemplate'
 #Timer messages
 TIMER_RECORD_REQUEST='timerrecordrequest'
 TIMER_RECORD_RESULT='timerrecordresult'
+
+
+# States of a record request
+class Record_States:
+	WAIT_FOR_RECORDING = 0
+	ACTUAL_RECORDING = 1
+	RECORDING_FINISHED = 2
+	RECORDING_FAILED = 3  # something went wrong, no result
+
