@@ -71,17 +71,6 @@
 					</v-col>
 				</v-row>
 				<v-row>
-					<v-col>
-						<v-text-field
-							v-model="query.searchtext"
-							:label="$t('edit_select_searchtext')"
-							clearable
-							append-icon="mdi-magnify"
-							@change="edit_query_available_movies(0)"
-						></v-text-field>
-					</v-col>
-				</v-row>
-				<v-row>
 					<v-btn
 						icon
 						@click="edit_query_available_movies(prev_page)"
@@ -89,6 +78,14 @@
 					>
 						<v-icon>mdi-chevron-left</v-icon>
 					</v-btn>
+					<v-spacer></v-spacer>
+						<v-text-field
+							v-model="query.searchtext"
+							:label="$t('edit_select_searchtext')"
+							clearable
+							append-icon="mdi-magnify"
+							@change="edit_query_available_movies(0)"
+						></v-text-field>
 					<v-spacer></v-spacer>
 					<v-btn
 						icon
