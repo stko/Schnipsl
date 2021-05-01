@@ -137,7 +137,7 @@ class SplPlugin(SplThread):
 				return []
 		if queue_event.type == defaults.QUERY_AVAILABLE_MOVIES:
 			res = []
-			titles = queue_event.params['select_title'].split()
+			titles = queue_event.params['select_searchtext'].split()
 			description_regexs = [re.compile(r'\b{}\b'.format(
 				description), re.IGNORECASE) for description in queue_event.params['select_description'].split()]
 			for plugin_name in self.plugin_names:

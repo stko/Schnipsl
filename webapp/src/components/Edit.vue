@@ -73,8 +73,11 @@
 				<v-row>
 					<v-col>
 						<v-text-field
-							v-model="query.title"
-							:label="$t('edit_select_title')"
+							v-model="query.searchtext"
+							:label="$t('edit_select_searchtext')"
+							clearable
+							append-icon="mdi-magnify"
+							@change="edit_query_available_movies(0)"
 						></v-text-field>
 					</v-col>
 				</v-row>
@@ -85,10 +88,6 @@
 						:disabled="this.prev_page < 0"
 					>
 						<v-icon>mdi-chevron-left</v-icon>
-					</v-btn>
-					<v-spacer></v-spacer>
-					<v-btn icon @click="edit_query_available_movies(0)">
-						<v-icon>mdi-magnify</v-icon>
 					</v-btn>
 					<v-spacer></v-spacer>
 					<v-btn
@@ -330,7 +329,7 @@ export default {
 				select_source_values: this.query.source_values,
 				select_provider_values: this.query.provider_values,
 				select_category_values: this.query.category_values,
-				select_title: this.query.title,
+				select_searchtext: this.query.searchtext,
 				query_start_page: query_start_page,
 			});
 		},

@@ -88,7 +88,7 @@ class StreamChannel(SplThread):
 				return []
 		if queue_event.type == defaults.QUERY_AVAILABLE_MOVIES:
 			res=[]
-			titles=queue_event.params['select_title'].split()
+			titles=queue_event.params['select_searchtext'].split()
 			for plugin_name in self.plugin_names:
 				if plugin_name in queue_event.params['select_source_values']: # this plugin is one of the wanted
 					if plugin_name in self.movies: # are there any movies stored for this plugin?

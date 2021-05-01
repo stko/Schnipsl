@@ -185,7 +185,7 @@ class EPGProvider(SplThread):
 						query_string+=' AND '
 					query_string += '(' +' OR '.join(quoted_values) + ')'
 					qp.add_plugin(DateParserPlugin())
-				query_string += ' ' + queue_event.params['select_title']
+				query_string += ' ' + queue_event.params['select_searchtext']
 				q = qp.parse(query_string)
 				results = searcher.search(q,limit=max_result_count, sortedby='timestamp')
 				for result in results:
