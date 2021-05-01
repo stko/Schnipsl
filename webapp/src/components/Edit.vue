@@ -77,12 +77,6 @@
 							:label="$t('edit_select_title')"
 						></v-text-field>
 					</v-col>
-					<v-col>
-						<v-text-field
-							v-model="query.description"
-							:label="$t('edit_select_description')"
-						></v-text-field>
-					</v-col>
 				</v-row>
 				<v-row>
 					<v-btn
@@ -231,7 +225,6 @@ export default {
 					category_items: [],
 					category_values: [],
 					title: "",
-					description: "",
 				};
 			}
 			this.edit_query_available_sources();
@@ -338,7 +331,6 @@ export default {
 				select_provider_values: this.query.provider_values,
 				select_category_values: this.query.category_values,
 				select_title: this.query.title,
-				select_description: this.query.description,
 				query_start_page: query_start_page,
 			});
 		},
