@@ -257,9 +257,10 @@ def record_thread(record, padding_time):
 	act_time = time.time()
 	remaining_time = record['record_starttime']+record['record_duration']-act_time
 
-	################ debug tweak to keep the records short - reduce the recors to 30 secs.
-	remaining_time=25
-	padding_time=5
+	################ debug tweak to keep the records short - reduce the records to 30 secs.
+	if False:
+		remaining_time=25
+		padding_time=5
 
 	attr = None
 	# does the record has a duration? then we've use ffmeg to limit the duration
