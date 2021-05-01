@@ -31,6 +31,9 @@
 					<timer-card v-for="item in movie_list.timers" :key="item.uuid" :item="item" />
 		</v-tab-item>
 		</v-tabs>
+		<v-footer app dark>
+			<player/>
+		</v-footer>
 	</v-card>
 </template>
 
@@ -45,6 +48,7 @@ import LiveCard from "./LiveCard.vue";
 import RecordCard from "./RecordCard.vue";
 import TimerCard from "./TimerCard.vue";
 import QuickSearchCard from "./QuickSearchCard.vue";
+import Player from "./Player.vue";
 
 export default {
 	name: "Schnipsl",
@@ -52,7 +56,8 @@ export default {
 		LiveCard,
 		RecordCard,
 		TimerCard,
-		QuickSearchCard
+		QuickSearchCard,
+		Player
 	},
 	title() {
 		return `${this.name}`;

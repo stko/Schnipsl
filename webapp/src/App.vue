@@ -34,19 +34,12 @@
 			</template>
 		</v-snackbar>
 
-		<v-footer app dark>
-			<player/>
-		</v-footer>
 	</v-app>
 </template>
 
 <script>
-import Player from "./components/Player.vue";
 import messenger from "./messenger";
 export default {
-	components: {
-		Player
-	},
 	data() {
 		return {
 

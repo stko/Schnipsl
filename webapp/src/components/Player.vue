@@ -1,6 +1,6 @@
 <!-- https://blog.kulturbanause.de/2013/12/css-grid-layout-module/ -->
 <template>
-	<div class="schnipsl-player">
+	<div v-show="isVisible()" class="schnipsl-player">
 		<div id="name">{{ movie_info.title }}</div>
 		<div id="series">{{ movie_info.category }}</div>
 		<div id="provider">{{ movie_info.provider }}</div>
@@ -19,11 +19,6 @@
 		<div id="volume">
 			<v-btn icon class="mx-4" @click="volume_dialog_show = true">
 				<v-icon size="24px">mdi-volume-high</v-icon>
-			</v-btn>
-		</div>
-		<div id="device">
-			<v-btn icon class="mx-4" @click="device_dialog_show = true">
-				<v-icon size="24px">mdi-television-classic</v-icon>
 			</v-btn>
 		</div>
 		<div id="prev">
@@ -224,6 +219,9 @@ export default {
 			this.messenger_onMessage,null, null);
 	},
 	methods: {
+		isVisible(){
+			return true;
+		},
 		messenger_onMessage(type, data) {
 			console.log("incoming message to player", type, data);
 			if (type == "player_position") {
@@ -324,16 +322,16 @@ export default {
 <style scoped>
 .schnipsl-player {
 	display: grid;
-	grid-template-columns: repeat(9, 9vw);
+	grid-template-columns: repeat(8, 8vw);
 	grid-template-rows: repeat(5, min-content);
 	gap: 0px 0px;
 	grid-template-areas:
-		"name name name name name name name name name"
-		"series series series series series series series series series"
-		"provider provider day day time time duration duration show"
-		"volume device prev minus5 play plus5 stop bed position"
-		"description description description description description description description description description"
-		"dialogs dialogs dialogs dialogs dialogs dialogs dialogs dialogs dialogs";
+		"name name name name name name name name"
+		"series series series series series series series series"
+		"provider provider day day time time duration show"
+		"volume prev minus5 play plus5 stop bed position"
+		"description description description description description description description description"
+		"dialogs dialogs dialogs dialogs dialogs dialogs dialogs dialogs";
 	background: grey;
 	border-radius: 10px;
 	padding: 5px;
