@@ -281,8 +281,10 @@ def record_thread(record, padding_time):
 					record['errorcount']=4 # just a temporary fix to avoid a crash on older configs
 				if record['errorcount']<=0:
 					record['state'] = Record_States.RECORDING_FAILED
+					logger.info(f"recorder max error count reached, recording finally failed" )
 				else: # give it another try
 					record['state'] =Record_States.WAIT_FOR_RECORDING
+					logger.info(f"recorder error count {record['errorcount']}, try it again soon.." )
 			else:
 				logger.info("recorder ended")
 				record['state'] = Record_States.RECORDING_FINISHED
