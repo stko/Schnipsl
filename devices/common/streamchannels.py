@@ -88,7 +88,10 @@ class StreamChannel(SplThread):
 				return []
 		if queue_event.type == defaults.QUERY_AVAILABLE_MOVIES:
 			res=[]
-			titles=queue_event.params['select_searchtext'].split()
+			try: # if select_searchtext is empty in the browser, it will be not set in the JSON message and can cause an key exeption here, so we have to catch that!
+				titles=queue_event.params['select_searchtext'].split()
+			except:
+				titles=[]
 			for plugin_name in self.plugin_names:
 				if plugin_name in queue_event.params['select_source_values']: # this plugin is one of the wanted
 					if plugin_name in self.movies: # are there any movies stored for this plugin?

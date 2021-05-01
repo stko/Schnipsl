@@ -220,7 +220,7 @@ export default {
 					provider_values: [],
 					category_items: [],
 					category_values: [],
-					title: "",
+					searchtext: "",
 				};
 			}
 			this.edit_query_available_sources();
