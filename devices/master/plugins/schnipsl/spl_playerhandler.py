@@ -125,7 +125,7 @@ class SplPlugin(SplThread):
 
 	def start_play(self, user, device_friendly_name, uri, movie_info, current_time):
 		self.players[user] = type('', (object,), {'uri': uri,'movie_info': movie_info, 'device_friendly_name': device_friendly_name, 'player_info': type('', (object,), {
-			'play': True,
+			'play': defaults.PLAYER_STATE_PLAY,
 			'position': 0,
 			'volume': 3,
 			'current_time': current_time,
@@ -205,15 +205,17 @@ class SplPlugin(SplThread):
 					player_info.current_time = 1
 				new_pos = True
 			if data['keyid'] == 'play':
-				player_info.play = not player_info.play
-				if player_info.play:
+				if player_info.play==defaults.PLAYER_STATE_PAUSE:
 					self.resume_play(
 						user_name, user_player.device_friendly_name)
+					player_info.play=defaults.PLAYER_STATE_PLAY
 				else:
-					self.pause_play(
-						user_name, user_player.device_friendly_name)
+					if player_info.play==defaults.PLAYER_STATE_PLAY:
+						self.pause_play(
+							user_name, user_player.device_friendly_name)
+						player_info.play=defaults.PLAYER_STATE_PAUSE
 			if data['keyid'] == 'stop':
-				player_info.play = False
+				player_info.play = defaults.PLAYER_STATE_EMPTY
 				self.player_save_state(user_player)
 				self.stop_play(user_name, user_player.device_friendly_name)
 
@@ -227,7 +229,7 @@ class SplPlugin(SplThread):
 					new_pos = True
 			if data['keyid'] == 'next':
 				player_info.current_time = player_info.duration
-				player_info.play = False
+				player_info.play = defaults.PLAYER_STATE_EMPTY
 				new_pos = True
 			if new_pos:
 				self.modref.message_handler.queue_event(None, defaults.DEVICE_PLAY_SETPOS, {

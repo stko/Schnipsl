@@ -212,11 +212,15 @@ class SplPlugin(SplThread):
 			except pychromecast.error.UnsupportedNamespace:
 				pass #print('UnsupportedNamespace exeption: ')
 				return
+			if cast.media_controller.status.player_state == "PLAYING":
+				play_state=defaults.PLAYER_STATE_PLAY
+			else:
+				play_state=defaults.PLAYER_STATE_EMPTY
 			cast_info = {
 				'device_friendly_name': device_friendly_name,
 				'duration': cast.media_controller.status.duration,
 				'current_time': cast.media_controller.status.current_time,
-				'play': cast.media_controller.status.player_state == "PLAYING",
+				'play': play_state,
 				'volume': int(cast.status.volume_level*100), #chromecasts handles volumes between 0 and 1.0, Schnipsl from 0 to 100
 				'state_change': state_change_flag
 			}

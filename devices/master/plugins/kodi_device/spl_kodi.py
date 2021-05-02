@@ -51,7 +51,7 @@ class Kodi:
 				'device_friendly_name': self.device_friendly_name,
 				'duration': 0,
 				'current_time': 0,
-				'play':  False,
+				'play':  defaults.PLAYER_STATE_EMPTY,
 				'volume': 0,
 				'state_change': True
 			}
@@ -82,9 +82,12 @@ class Kodi:
 		response=self.doJsonRPC(payload)
 		print('Kodi play_media',payload,response)
 		try:
-			self.cast_info['play']=response['result']=='OK'
+			if response['result']=='OK':
+				self.cast_info['play']=defaults.PLAYER_STATE_PLAY
+			else:
+				self.cast_info['play']=defaults.PLAYER_STATE_EMPTY
 		except:
-			self.cast_info['play']=False
+			self.cast_info['play']=defaults.PLAYER_STATE_EMPTY
 		if current_time:
 			time.sleep(3) # in case we have a start position, we need to give the player some time to be sure that update_ status returns data which match to the stream
 		self.update_status()
@@ -112,7 +115,7 @@ class Kodi:
 		self.duration=self.cast_info['duration']
 		self.current_time=self.cast_info['current_time']
 		previous_player_state=self.cast_info['play']
-		self.cast_info['play']=False
+		self.cast_info['play']=defaults.PLAYER_STATE_EMPTY
 		self.cast_info['state_change']=previous_player_state and not self.cast_info['play']
 
 		self.player_id=None
@@ -212,7 +215,10 @@ class Kodi:
 			self.duration=self.cast_info['duration']
 			self.current_time=self.cast_info['current_time']
 			previous_player_state=self.cast_info['play']
-			self.cast_info['play']=response['result']['speed']>0
+			if response['result']['speed']>0:
+				self.cast_info['play']=defaults.PLAYER_STATE_PLAY
+			else:
+				self.cast_info['play']=defaults.PLAYER_STATE_PAUSE
 			self.cast_info['state_change']=previous_player_state and not self.cast_info['play']
 		except:
 			self.cast_info['state_change']=False
@@ -307,7 +313,9 @@ class SplPlugin(SplThread):
 			cast = self.get_cast(queue_event.data['device_friendly_name'])
 			if cast and cast.online:
 				cast.stop()
-				# 
+				self.send_device_play_status(
+					queue_event.data['device_friendly_name'], True)
+
 				time.sleep(self.config.read('stopdelay',0))
 			else:
 				if not cast:

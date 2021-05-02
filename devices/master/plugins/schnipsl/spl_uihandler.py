@@ -44,7 +44,7 @@ class SplPlugin(SplThread):
 		self.play_time = 0
 		self.play_total_secs = 90*60
 		self.player_info = {
-			'play': True,
+			'play': defaults.PLAYER_STATE_PLAY,
 			'position': 0,
 			'volume': 3,
 			'playTime': '00:00',

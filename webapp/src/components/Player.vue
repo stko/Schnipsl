@@ -33,7 +33,7 @@
 		</div>
 		<div id="play">
 			<v-btn icon class="mx-4" @click="player_key('play')">
-				<v-icon>{{ player_pos.play ? "mdi-pause" : "mdi-play" }}</v-icon>
+				<v-icon>{{ player_pos.play==1 ? "mdi-pause" : "mdi-play" }}</v-icon>
 			</v-btn>
 		</div>
 		<div id="plus5">
@@ -186,7 +186,7 @@ export default {
 	data() {
 		return {
 			player_pos: {
-				play: false,
+				play: 0,
 				current_time: 55,
 				duration: 120,
 				volume: 3,
@@ -220,7 +220,7 @@ export default {
 	},
 	methods: {
 		isVisible(){
-			return true;
+			return this.player_pos.play!=0;
 		},
 		messenger_onMessage(type, data) {
 			console.log("incoming message to player", type, data);
@@ -332,7 +332,8 @@ export default {
 		"volume prev minus5 play plus5 stop bed position"
 		"description description description description description description description description"
 		"dialogs dialogs dialogs dialogs dialogs dialogs dialogs dialogs";
-	background: grey;
+	background: rgb(153, 115, 12);
+	color: white;
 	border-radius: 10px;
 	padding: 5px;
 	margin-bottom: 10px;
@@ -345,8 +346,6 @@ export default {
 	border-radius: 5px;
 }
 #name {
-	background: grey;
-	color: white;
 	grid-area: name;
 	font-family: "Atkinson-Hyperlegible", Helvetica, Arial;
 	font-size: 200%;
@@ -356,8 +355,6 @@ export default {
 	font-weight: bold;
 }
 #series {
-	background: grey;
-	color: white;
 	grid-area: series;
 	font-family: "Atkinson-Hyperlegible", Helvetica, Arial;
 	font-size: 150%;
@@ -365,7 +362,6 @@ export default {
 	padding-left: 5px;
 }
 #provider {
-	background: grey;
 	color: lightgray;
 	font-weight: bold;
 	grid-area: provider;
@@ -373,25 +369,21 @@ export default {
 	padding-left: 5px;
 }
 #day {
-	background: grey;
 	color: lightgray;
 	font-weight: bold;
 	grid-area: day;
 }
 #time {
-	background: grey;
 	color: lightgray;
 	font-weight: bold;
 	grid-area: time;
 }
 #duration {
-	background: grey;
 	color: lightgray;
 	font-weight: bold;
 	grid-area: duration;
 }
 #next {
-	background: grey;
 	color: white;
 	grid-area: next;
 	font-family: "Atkinson-Hyperlegible", Helvetica, Arial;
@@ -401,7 +393,6 @@ export default {
 }
 
 #volume {
-	background: grey;
 	/*border-radius: 13px;*/
 	/* (height of inner div) / 2 + padding */
 	padding: 3px;
@@ -409,7 +400,6 @@ export default {
 }
 
 #position {
-	background: grey;
 	/*border-radius: 13px;*/
 	/* (height of inner div) / 2 + padding */
 	padding: 3px;
@@ -417,7 +407,6 @@ export default {
 }
 
 #viewed {
-	background: grey;
 	/*border-radius: 13px;*/
 	/* (height of inner div) / 2 + padding */
 	padding: 3px;
@@ -433,28 +422,18 @@ export default {
 }
 
 #edit {
-	background: grey;
-	color: white;
 	grid-area: edit;
 }
 #share {
-	background: grey;
-	color: white;
 	grid-area: share;
 }
 #record {
-	background: grey;
-	color: white;
 	grid-area: record;
 }
 #show {
-	background: grey;
-	color: white;
 	grid-area: show;
 }
 #description {
-	background: grey;
-	color: white;
 	grid-area: description;
 }
 .v-icon {

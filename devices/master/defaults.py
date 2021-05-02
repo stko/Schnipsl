@@ -85,3 +85,7 @@ class Record_States:
 	RECORDING_FINISHED = 2
 	RECORDING_FAILED = 3  # something went wrong, no result
 
+# Player states
+PLAYER_STATE_EMPTY = 0 # actual no stream loaded
+PLAYER_STATE_PLAY = 1 # actual playing stream
+PLAYER_STATE_PAUSE = 2 # stream loaded, but on pause
