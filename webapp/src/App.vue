@@ -3,15 +3,13 @@
 		<!-- Provides the application the proper gutter -->
 		<v-main>
 			<v-container>
-				<router-view/>
+				<router-view />
 			</v-container>
 		</v-main>
-		<v-row justify="center">
-
-		</v-row>
+		<v-row justify="center"> </v-row>
 		<v-row justify="center">
 			<v-dialog dark v-model="offline_dialog_show" max-width="300px">
-			<!--<v-dialog  max-width="300px"> -->
+				<!--<v-dialog  max-width="300px"> -->
 				<v-card>
 					<v-card-title>{{ $t("main_noconnect") }}</v-card-title>
 					<v-divider></v-divider>
@@ -25,15 +23,14 @@
 			</v-dialog>
 		</v-row>
 		<v-snackbar v-model="snackbar">
-			{{ user_message }}
+			{{  $t(user_message) }}
 
 			<template v-slot:action="{ attrs }">
 				<v-btn color="pink" text v-bind="attrs" @click="snackbar = false">
-					Close
+					{{  $t(user_button_text) }}
 				</v-btn>
 			</template>
 		</v-snackbar>
-
 	</v-app>
 </template>
 
@@ -42,11 +39,11 @@ import messenger from "./messenger";
 export default {
 	data() {
 		return {
-
 			uri: null,
 			offline_dialog_show: false,
 			snackbar: false,
 			user_message: "",
+			user_button_text: "",
 		};
 	},
 	created() {
@@ -61,7 +58,8 @@ export default {
 		messenger_onMessage(type, data) {
 			console.log("incoming message to app", type, data);
 			if (type == "app_user_message") {
-				this.user_message = data.message;
+				this.user_message = data.user_message;
+				this.user_button_text = data.user_button_text;
 				this.snackbar = true;
 			}
 		},

@@ -79,13 +79,13 @@
 						<v-icon>mdi-chevron-left</v-icon>
 					</v-btn>
 					<v-spacer></v-spacer>
-						<v-text-field
-							v-model="query.searchtext"
-							:label="$t('edit_select_searchtext')"
-							clearable
-							append-icon="mdi-magnify"
-							@change="edit_query_available_movies(0)"
-						></v-text-field>
+					<v-text-field
+						v-model="query.searchtext"
+						:label="$t('edit_select_searchtext')"
+						clearable
+						append-icon="mdi-magnify"
+						@change="edit_query_available_movies(0)"
+					></v-text-field>
 					<v-spacer></v-spacer>
 					<v-btn
 						icon
@@ -176,6 +176,21 @@
 				</v-card>
 			</v-dialog>
 		</v-row>
+		<v-row justify="center">
+			<v-dialog dark v-model="waitSearchResults" max-width="300px">
+				<!--<v-dialog  max-width="300px"> -->
+				<v-card>
+					<v-card-title>{{ $t("edit_wait_for_search") }}</v-card-title>
+					<v-divider></v-divider>
+					<v-card-text style="height: 75px">
+						<v-progress-circular
+							indeterminate
+							color="primary"
+						></v-progress-circular>
+					</v-card-text>
+				</v-card>
+			</v-dialog>
+		</v-row>
 	</v-card>
 </template>
 
@@ -198,8 +213,8 @@ export default {
 		next_page: -1,
 	}),
 	computed: {
-		onsides: function () {
-			return "43 ?!";
+		waitSearchResults: function () {
+			return this.movie_info_list == null;
 		},
 	},
 	created() {
@@ -329,6 +344,7 @@ export default {
 				select_searchtext: this.query.searchtext,
 				query_start_page: query_start_page,
 			});
+			this.movie_info_list = null;
 		},
 		localDate(timestamp, locale) {
 			return dayjs.unix(timestamp).local().format(locale);

@@ -58,6 +58,6 @@ class SplThread(metaclass=ABCMeta):
 			self.th.join(timeout)
 		return self.th.isAlive()
 
-	def user_message(self,user,message):
+	def user_message(self,user,user_message, user_button_text='OK'):
 		self.msg_handler.queue_event(user, defaults.MSG_SOCKET_MSG, {
-				'type': defaults.MSG_SOCKET_APP_USER_MESSAGE, 'config': {'message': message}})
+				'type': defaults.MSG_SOCKET_APP_USER_MESSAGE, 'config': {'user_message': user_message,'user_button_text':user_button_text}})

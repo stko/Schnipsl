@@ -86,7 +86,7 @@ class SplPlugin(SplThread):
 				# starts to play movie on device
 			print("plays schnipsl {0} on device ".format(
 				queue_event.data['uri']))
-			self.user_message(queue_event.user, 'Play request')
+			self.user_message(queue_event.user, 'play_request','close')
 			movie_info_list = self.modref.message_handler.query(
 				Query(queue_event.user, defaults.QUERY_MOVIE_ID, queue_event.data['uri']))
 			if movie_info_list:
@@ -121,8 +121,11 @@ class SplPlugin(SplThread):
 					})
 		if queue_event.type == defaults.MSG_SOCKET_EDIT_PLAY_ADD_REQUEST:
 			self.update_movie_list(queue_event)
+			self.user_message(queue_event.user, 'play_added','close')
+
 		if queue_event.type == defaults.MSG_SOCKET_EDIT_RECORD_ADD_REQUEST:
 			self.update_movie_list(queue_event, True)
+			self.user_message(queue_event.user, 'record_added','close')
 		if queue_event.type == defaults.MSG_SOCKET_EDIT_PLAY_REQUEST:
 			uuid, movie_uri = self.update_movie_list(queue_event)
 			if uuid:
