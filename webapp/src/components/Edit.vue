@@ -83,9 +83,14 @@
 						v-model="query.searchtext"
 						:label="$t('edit_select_searchtext')"
 						clearable
-						append-icon="mdi-magnify"
 						@change="edit_query_available_movies(0)"
 					></v-text-field>
+					<v-btn
+						icon
+						@click="edit_query_available_movies(0)"
+					>
+						<v-icon>mdi-magnify</v-icon>
+					</v-btn>
 					<v-spacer></v-spacer>
 					<v-btn
 						icon
@@ -350,14 +355,19 @@ export default {
 			return dayjs.unix(timestamp).local().format(locale);
 		},
 		duration(secondsValue) {
-			var seconds = parseInt(secondsValue, 10);
-			if (!Number.isInteger(seconds || seconds < 0)) {
+			var totalsecs = parseInt(secondsValue, 10);
+			if (!Number.isInteger(totalsecs || totalsecs < 0)) {
 				return "";
 			}
-			if (seconds < 3600) {
-				return dayjs.unix(seconds).utc().format("mm:ss");
+			var secs = ("0" + totalsecs % 60 ).slice(-2)
+			totalsecs = Math.floor(totalsecs / 60)
+			var mins = ("0" + totalsecs % 60 ).slice(-2)
+			totalsecs = Math.floor(totalsecs / 60)
+			var hours = ("0" + totalsecs).slice(-2)
+			if (totalsecs < 1) {
+				return mins+':'+secs
 			} else {
-				return dayjs.unix(seconds).utc().format("HH:mm:ss");
+				return hours+':'+mins+':'+secs
 			}
 		},
 	},
