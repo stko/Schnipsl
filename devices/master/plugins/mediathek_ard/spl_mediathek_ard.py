@@ -64,11 +64,11 @@ class SplPlugin(EPGProvider):
 		self.categories = [
 			{
 				'text': 'category_last_week',
-				'value': "['-1 week' to now]"
+				'value': '{"type": "day", "expression": "[\'-1 week\' to now]"}'
 			},
 			{
 				'text': 'category_last_month',
-				'value': "['-4 week' to now]"
+				'value': '{"type": "day", "expression": "[\'-4 week\' to now]"}'
 			},
 		]
 		# additional to our whoosh db, we need to cache the providers to not have
@@ -97,6 +97,9 @@ class SplPlugin(EPGProvider):
 
 	def get_categories(self ):
 		return self.categories
+
+	def get_instance(self):
+		return self
 
 	def is_streamable(self):
 		''' helper routine, as some EPGs are streamable (e.g. Youtube, mediathecs)

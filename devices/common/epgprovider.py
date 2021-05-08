@@ -17,7 +17,7 @@ from pprint import pprint
 import time
 from urllib.request import urlopen, urlretrieve,  urlparse, urlunparse
 from xml.etree.ElementTree import parse
-import re
+import json
 from abc import abstractmethod
 
 
@@ -96,6 +96,12 @@ class EPGProvider(SplThread):
 	def get_categories(self):
 		''' 
 		get child class categories
+		'''
+
+	@abstractmethod
+	def get_instance(self):
+		''' 
+		get child class instance
 		'''
 
 	def query_handler(self, queue_event, max_result_count):
@@ -177,13 +183,27 @@ class EPGProvider(SplThread):
 						lambda pr: 'provider:\''+pr+'\'', queue_event.params['select_provider_values'])
 					query_string +='(' + ' OR '.join(quoted_values) + ')'
 				if queue_event.params['select_category_values']:
-					# add a quote around each category to make e.g. ZDF HD => 'ZDF HD' and add timestamp: to it
-					quoted_values = map(
-						lambda pr: 'timestamp:'+pr, queue_event.params['select_category_values'])
-					# query_string += 'timestamp:('+' '.join(quoted_values)+') '
+					# now we need to build a timestamp query string, which ANDs the different time/day parameters
+					timestamp_queries_unsorted={}
+					for category_query in queue_event.params['select_category_values']:
+						try:
+							json_query_data=json.loads(category_query)
+							timestamp_query_type=json_query_data["type"]
+							if not timestamp_query_type in timestamp_queries_unsorted:
+								timestamp_queries_unsorted[timestamp_query_type]=set()
+							timestamp_queries_unsorted[timestamp_query_type].add(json_query_data["expression"])
+						except:
+							self.get_instance().logger.warning('malformed category received:',category_query)
+					# after we jave sorted the expressions, we need to make a proper query string out of it
+					timestamp_queries={}
+					for type, expressions in timestamp_queries_unsorted.items():
+					# first we OR each category for itself
+						timestamp_queries[type]='(' +' OR '.join(map(lambda pr: 'timestamp:'+pr, expressions)) + ')'
+					# then we AND each category
+					timestamp_query='(' +' AND '.join( timestamp_queries.values()) + ')'
 					if query_string:
 						query_string+=' AND '
-					query_string += '(' +' OR '.join(quoted_values) + ')'
+					query_string += timestamp_query
 					qp.add_plugin(DateParserPlugin())
 				try: # if select_searchtext is empty in the browser, it will be not set in the JSON message and can cause an key exeption here, so we have to catch that!
 					query_string += ' ' + queue_event.params['select_searchtext']

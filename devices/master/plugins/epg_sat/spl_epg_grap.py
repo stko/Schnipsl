@@ -40,8 +40,6 @@ import defaults
 from epgprovider import EPGProvider
 import schnipsllogger
 
-logger = schnipsllogger.getLogger(__name__)
-
 class SplPlugin(EPGProvider):
 	plugin_id = 'satepg'
 	plugin_names = ['SAT EPG']
@@ -50,6 +48,7 @@ class SplPlugin(EPGProvider):
 		''' inits the plugin
 		'''
 		self.modref = modref
+		self.logger = schnipsllogger.getLogger(__name__)
 
 		# do the plugin specific initialisation first
 		self.origin_dir = os.path.dirname(__file__)
@@ -86,19 +85,19 @@ class SplPlugin(EPGProvider):
 		self.categories = [
 			{
 				'text': 'category_today',
-				'value': 'today'
+				'value': '{"type": "day", "expression": "today"}'
 			},
 			{
 				'text': 'category_tomorrow',
-				'value': 'tomorrow'
+				'value': '{"type": "day", "expression": "tomorrow"}'
 			},
 			{
 				'text': 'category_now',
-				'value': 'now'
+				'value': '{"type": "time", "expression": "now"}'
 			},
 			{
 				'text': 'category_evening',
-				'value': "['8 PM' to tomorrow]"
+				'value': '{"type": "time", "expression": "[\'8 PM\' to tomorrow"}'
 			},
 		]
 
@@ -123,6 +122,9 @@ class SplPlugin(EPGProvider):
 
 	def get_categories(self ):
 		return self.categories
+
+	def get_instance(self):
+		return self
 
 	def is_streamable(self):
 		''' helper routine, as some EPGs are streamable (e.g. Youtube, mediathecs)
@@ -273,7 +275,7 @@ class SplPlugin(EPGProvider):
 
 
 		attr=[os.path.join(	self.origin_dir, 'epg_grap.sh') , url_epd_pids_only, provider , str(self.config.read('epgloops')), str(self.config.read('epgtimeout'))] # process arguments
-		logger.debug  ("epg_grap started {0} {1} {2}".format(provider, url_epd_pids_only,repr(attr)))
+		self.logger.debug  ("epg_grap started {0} {1} {2}".format(provider, url_epd_pids_only,repr(attr)))
 		try:
 			self.process = subprocess.Popen(attr, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 			cleaner = Timer(600, self.cleanProcess) # if epg_grap won't exit, try to terminate its process in 30 seconds
@@ -282,9 +284,9 @@ class SplPlugin(EPGProvider):
 			#self.process.wait() # oops... not needed? harmless!
 			cleaner.cancel()
 			if err:
-				logger.warning ("epg_grap ended with an error:\n%s" % ( err))
+				self.logger.warning ("epg_grap ended with an error:\n%s" % ( err))
 			else:
-				logger.debug ("epg_grap' ended")
+				self.logger.debug ("epg_grap' ended")
 				epg_json_string=epg_out.decode()
 				epg_json = json.loads(epg_json_string)
 				result = {}
@@ -324,11 +326,11 @@ class SplPlugin(EPGProvider):
 					self.movies[plugin_name][new_movie['uri']]=new_movie
 					result[start]=new_movie
 				for json_provider in epg_json['providers']:
-					logger.debug("channel found in epg: {0}".format(json_provider))
-				logger.info("{0} epg loaded, {1} entries".format(provider,count))
+					self.logger.debug("channel found in epg: {0}".format(json_provider))
+				self.logger.info("{0} epg loaded, {1} entries".format(provider,count))
 				return result
 		except Exception as ex:
-			logger.warning ("epg_grap could not be started. Error: %s" % (ex))
+			self.logger.warning ("epg_grap could not be started. Error: %s" % (ex))
 		return
 
 	def get_timestamp(self, elem):
