@@ -19,7 +19,7 @@
 						$t("locale_time_format")
 					)
 				}}</div>
-				<div id="duration">{{ duration(item.movie_info.duration) }}</div>
+				<div id="duration">{{ ("0" +item.movie_info.duration+'%').slice(-2) }}</div>
 				<div id="next">{{ item.movie_info.next_title }}</div>
 				<div id="edit"
 					><v-btn icon @click="nav2Edit(item.uuid, item.query)">
