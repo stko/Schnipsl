@@ -239,6 +239,8 @@ class SplPlugin(SplThread):
 			self.records.save()
 
 	def deploy_record_result(self, record, record_state):
+		# save changes
+		self.records.write(record['uri'], record)
 		self.modref.message_handler.queue_event(None, defaults.TIMER_RECORD_RESULT, {
 			'new_uri':record['new_uri'], 'new_url':record['new_url'], 'uuid': record['uuid'], 'record_state': record_state})
 
