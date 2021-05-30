@@ -7,6 +7,7 @@ import os
 import sys
 import time
 from base64 import b64encode
+from urllib.parse import urlparse, urlunparse
 from pprint import pprint
 
 from threading import Timer , Lock
@@ -67,6 +68,21 @@ class Kodi:
 			self.cast_info['current_time'] = 0
 		else:
 			self.cast_info['current_time'] = -1
+
+		# dirty workaround to make rtsp:// instead of http:// if the source appears to be a SAT>IP server
+		# identified by the existance of query elements..
+		#
+		# TODO: find a better solution...
+		url_st = urlparse(movie_url)
+		if url_st.query:
+			movie_url = urlunparse((
+				'rtsp',
+				url_st.netloc,
+				url_st.path,
+				url_st.params,
+				url_st.query,
+				url_st.fragment,
+			))
 
 		print('Kodi play request',movie_url)
 		payload ={
