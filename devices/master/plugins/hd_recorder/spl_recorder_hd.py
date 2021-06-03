@@ -268,7 +268,7 @@ def record_thread(record, padding_time):
 	# does the record has a duration? then we've use ffmeg to limit the duration
 	if record['record_duration']:
 		# attr = ['ffmpeg', '-y', '-i', url, '-vcodec', 'copy', '-acodec', 'copy', 	'-map', '0:v', '-map', '0:a', '-t', str(remaining_time+padding_time), '-f', 'ts' , file_path]
-		attr = ['ffmpeg', '-y', '-i', url, '-vcodec', 'copy', '-acodec', 'copy', '-t', str(remaining_time+padding_time), file_path]
+		attr = ['ffmpeg', '-y', '-rw_timeout', '5000',  '-i', url, '-vcodec', 'copy', '-acodec', 'copy', '-t', str(remaining_time+padding_time), file_path]
 	else:
 		attr = ['curl', '-s', url, '-o', file_path]  # process arguments
 	if attr:
