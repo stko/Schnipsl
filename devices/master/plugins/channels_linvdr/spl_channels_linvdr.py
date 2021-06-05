@@ -42,8 +42,7 @@ class SplPlugin(StreamChannel):
 		self.providers=set()
 		self.movies={}
 		self.origin_dir = os.path.dirname(__file__)
-		self.config = JsonStorage(os.path.join(
-			self.origin_dir, "config.json"), [{
+		self.config = JsonStorage(self.plugin_id, 'backup', "config.json", [{
 			'url':'http://192.168.1.7:3000/channels.html',
 				'channels_per_device':0
 				}]

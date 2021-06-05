@@ -52,8 +52,7 @@ class SplPlugin(EPGProvider):
 
 		# do the plugin specific initialisation first
 		self.origin_dir = os.path.dirname(__file__)
-		self.config = JsonStorage(os.path.join(
-			self.origin_dir, "config.json"), {
+		self.config = JsonStorage(self.plugin_id, 'backup' ,"config.json", {
 				'epgloops':1,
 				'epgtimeout':60,
 				'stream_source':'SatIP Live'
@@ -64,8 +63,7 @@ class SplPlugin(EPGProvider):
 		self.epgbuffer_file_name = os.path.join(self.origin_dir, "epgbuffer.ts")
 
 		self.process=None
-		self.epg_storage = JsonStorage(os.path.join(
-			self.origin_dir, "epgdata.json"), {'epgdata':{}})
+		self.epg_storage = JsonStorage(self.plugin_id, 'runtime',  "epgdata.json", {'epgdata':{}})
 		self.all_EPG_Data = self.epg_storage.read('epgdata')
 
 
@@ -275,7 +273,7 @@ class SplPlugin(EPGProvider):
 
 
 		attr=[os.path.join(	self.origin_dir, 'epg_grap.sh') , url_epd_pids_only, provider , str(self.config.read('epgloops')), str(self.config.read('epgtimeout'))] # process arguments
-		self.logger.debug  ("epg_grap started {0} {1} {2}".format(provider, url_epd_pids_only,repr(attr)))
+		self.logger.info  ("epg_grap started {0} {1} {2}".format(provider, url_epd_pids_only,repr(attr)))
 		try:
 			self.process = subprocess.Popen(attr, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 			cleaner = Timer(600, self.cleanProcess) # if epg_grap won't exit, try to terminate its process in 30 seconds

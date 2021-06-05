@@ -4,6 +4,7 @@
 import os
 import json
 import schnipsllogger
+from directorymapper import DirectoryMapper
 
 logger = schnipsllogger.getLogger(__name__)
 
@@ -12,25 +13,29 @@ class JsonStorage:
 
 	'''
 
-	def __init__(self, filename, default):
+	def __init__(self, module_name,storage_type,filename, default):
 		'''
 		creates a persistent data link to a config file on disk
 
 		Args:
-			filename (:str:`str`): Absolut! path to config file
+			module_name (:obj:`obj`) : instance the file belongs to
+			storage_type (:str:`str`): identifier of the wanted storage type
+			filename (:str:`str`):config file name without! path
 			default (:obj:`obj`) : serialisable data structure to be used if file does not exist yet
 
 		'''
 		self.config = default # just the default
 		self.file_name = filename
+		self.module_name=module_name
+		self.storage_type=storage_type
 
 		try:
-			with open(self.file_name) as json_file:
+			with DirectoryMapper.open(self.module_name, self.storage_type,self.file_name) as json_file:
 				self.config = json.load(json_file)
 
-		except:
+		except Exception as ex:
 			logger.warning(
-				"couldn't load config file {0}".format(self.file_name))
+				"couldn't load config file {0}:{1}".format(self.file_name,str(ex)))
 			# self default config to have a configable file on disk
 			self.save()
 
@@ -72,7 +77,7 @@ class JsonStorage:
 		'''
 
 		try:
-			with open(self.file_name, 'w') as outfile:
+			with DirectoryMapper.open(self.module_name, self.storage_type,self.file_name, 'w') as outfile:
 				try:
 					json.dump(self.config, outfile, sort_keys=True,
 							indent=4, separators=(',', ': '))
@@ -80,7 +85,7 @@ class JsonStorage:
 				except Exception as ex: 
 					pass
 			# json seems to throw an error when try to sort and numeric and string keys are mixed in a dict, so we try again without sort
-			with open(self.file_name, 'w') as outfile:
+			with DirectoryMapper.open(self.module_name, self.storage_type,self.file_name, 'w') as outfile:
 				try:
 					json.dump(self.config, outfile,
 							indent=4, separators=(',', ': '))

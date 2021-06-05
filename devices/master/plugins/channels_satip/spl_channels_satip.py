@@ -95,8 +95,7 @@ class SplPlugin(StreamChannel):
 		'''
 		# do the plugin specific initialisation first
 		self.origin_dir = os.path.dirname(__file__)
-		self.config = JsonStorage(os.path.join(
-			self.origin_dir, "config.json"), {
+		self.config = JsonStorage(self.plugin_id, 'backup', "config.json", {
 			'channel_list_urls': [
 				{
 					'url': 'file:///Astra_19.2.xspf',

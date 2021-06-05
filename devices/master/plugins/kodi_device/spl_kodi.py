@@ -299,8 +299,7 @@ class SplPlugin(SplThread):
 		self.zeroconf = zeroconf.Zeroconf()
 		self.lock=Lock()
 		self.origin_dir = os.path.dirname(__file__)
-		self.config = JsonStorage(os.path.join(
-			self.origin_dir, "config.json"), {'stopdelay': 1.0})
+		self.config = JsonStorage(self.plugin_id, 'backup', "config.json", {'stopdelay': 1.0})
 
 		# at last announce the own plugin
 		super().__init__(modref.message_handler, self)

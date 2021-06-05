@@ -62,10 +62,8 @@ class SplPlugin(SplThread):
 
 		# do the plugin specific initialisation first
 		self.origin_dir = os.path.dirname(__file__)
-		self.config = JsonStorage(os.path.join(
-			self.origin_dir, "data.json"), {})
-		self.channels_info = JsonStorage(os.path.join(
-			self.origin_dir, "channels_info.json"), {})
+		self.config = JsonStorage(self.plugin_id, 'runtime',  "data.json", {})
+		self.channels_info = JsonStorage(self.plugin_id, 'runtime',  "channels_info.json", {})
 
 		self.allChannels = set()
 		self.providers = set()

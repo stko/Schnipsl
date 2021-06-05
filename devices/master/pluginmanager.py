@@ -28,8 +28,7 @@ class PluginManager():
 
 	def __init__(self, modref, plugin_root_dir):
 		self.origin_dir = os.path.dirname(__file__)
-		self.config = JsonStorage(os.path.join(
-			self.origin_dir, "plugins.json"), {
+		self.config = JsonStorage('PluginManager', 'backup', "plugins.json", {
 				'plugins':{
 					"channels_satip": {
 						"active": True

@@ -73,8 +73,7 @@ class SplPlugin(EPGProvider):
 		]
 		# additional to our whoosh db, we need to cache the providers to not have
 		# to read through the huge whoosh db at start to reconstruct the provider list again
-		self.provider_storage = JsonStorage(os.path.join(
-			self.origin_dir, "provider_cache.json"), {'provider_cache':[]})
+		self.provider_storage = JsonStorage(self.plugin_id, 'runtime', "provider_cache.json", {'provider_cache':[]})
 		self.providers = set(self.provider_storage.read('provider_cache'))
 
 
