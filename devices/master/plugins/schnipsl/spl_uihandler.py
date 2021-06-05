@@ -7,6 +7,7 @@ from messagehandler import Query
 from classes import MovieInfo
 import defaults
 from splthread import SplThread
+from jsonstorage import JsonStorage
 import sys
 import os
 import ssl
@@ -50,7 +51,8 @@ class SplPlugin(SplThread):
 			'playTime': '00:00',
 			'remainingTime': '00:00'
 		}
-		self.movielist = self.modref.store.read_users_value('movielist', {})
+		self.movielist_storage = JsonStorage(self.plugin_id, 'runtime', "movielist.json", {'movielist':{}})
+		self.movielist = self.movielist_storage.read('movielist', {})
 		self.lock = threading.Lock()
 
 		# at last announce the own plugin
@@ -80,7 +82,7 @@ class SplPlugin(SplThread):
 					# remove the whole entry
 					del (self.movielist[uuid])
 				self.send_home_movie_list(queue_event)
-				self.modref.store.write_users_value(
+				self.movielist_storage.write(
 					'movielist', self.movielist)
 		if queue_event.type == defaults.MSG_SOCKET_SELECT_PLAYER_DEVICE:
 				# starts to play movie on device
@@ -224,7 +226,7 @@ class SplPlugin(SplThread):
 					for user_name in self.movielist[uuid]['clients']:
 						self.modref.message_handler.queue_event(user_name, defaults.MSG_SOCKET_MSG, {
 							'type': defaults.MSG_SOCKET_HOME_MOVIE_INFO_LIST, 'config': self.prepare_movie_list(user_name)})
-					self.modref.store.write_users_value(
+					self.movielist_storage.write(
 						'movielist', self.movielist)
 				else:
 					self.movielist[uuid]['damaged']=True
@@ -427,10 +429,10 @@ class SplPlugin(SplThread):
 			movie_list_entry['query']['name'] = ''
 			movie_list_entry['movie_info'] = movie_list[0]
 
-			self.modref.store.write_users_value('movielist', self.movielist)
+			self.movielist_storage.write('movielist', self.movielist)
 			return movie_list_uuid, movie_list[0]['uri']
 		else:
-			self.modref.store.write_users_value('movielist', self.movielist)
+			self.movielist_storage.write('movielist', self.movielist)
 			return None
 
 	def filter_select_values(self, value_list, actual_values):
@@ -479,7 +481,7 @@ class SplPlugin(SplThread):
 			search_movie = self.movielist[uuid]
 			search_movie['clients'][user]['current_time'] = player_info.current_time
 			self.update_single_movie_clip(user, uuid)
-			self.modref.store.write_users_value('movielist', self.movielist)
+			self.movielist_storage.write('movielist', self.movielist)
 
 	def request_stream_playlist(self):
 		for movie_list_item in self.movielist.values():

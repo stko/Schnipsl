@@ -14,7 +14,7 @@ combined http(s) and websocket server copied from
 
 import sys
 import os
-import threading
+import socket
 import ssl
 import json
 from base64 import b64encode
@@ -31,6 +31,16 @@ from io import StringIO
 from splthread import SplThread
 import defaults
 
+# Add the directory containing your module to the Python path (wants absolute paths)
+
+ScriptPath = os.path.realpath(os.path.join(
+	os.path.dirname(__file__), "../common"))
+
+sys.path.append(os.path.abspath(ScriptPath))
+
+# own local modules
+
+from jsonstorage import JsonStorage
 
 
 class WebsocketUser:
@@ -152,7 +162,16 @@ class Webserver(SplThread):
 
 		super().__init__(modref.message_handler,self)
 		# reads the config, if any
-		server_config = modref.store.read_config_value("server_config")
+		self.config = JsonStorage('webserver', 'backup', "config.json",
+		{
+			'server_config': {
+					"credentials": "",
+					"host": "0.0.0.0",
+					"port": 8000,
+					"secure": False
+				},
+		})
+		server_config = self.config.read("server_config",{})
 		# set up the argument parser with values from the config
 		parser = argparse.ArgumentParser()
 		parser.add_argument("--host", default=server_config["host"],
@@ -207,13 +226,11 @@ class Webserver(SplThread):
 		pass
 
 if __name__ == '__main__':
-	from storage import Storage
 	class ModRef:
 		store = None
 		message_handler= None
 
 	modref=ModRef()
-	modref.store=Storage(modref)
 	ws=Webserver(modref)
 	ws.run()
 	while True:
