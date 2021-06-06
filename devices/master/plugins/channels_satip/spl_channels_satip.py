@@ -29,7 +29,10 @@ import defaults
 from splthread import SplThread
 from jsonstorage import JsonStorage
 from streamchannels import StreamChannel
+from directorymapper import DirectoryMapper
 from scheduler import Scheduler
+
+plugin_id = 'channels_satip'
 
 # requests local file:// adaptor https://stackoverflow.com/a/27786580
 class LocalFileAdapter(requests.adapters.BaseAdapter):
@@ -45,11 +48,11 @@ class LocalFileAdapter(requests.adapters.BaseAdapter):
 			return 501, "Not Implemented"  # TODO
 		elif method.lower() not in ('get', 'head'):
 			return 405, "Method Not Allowed"
-		elif os.path.isdir(path):
+		elif DirectoryMapper.isdir(plugin_id, 'backup',path):
 			return 400, "Path Not A File"
-		elif not os.path.isfile(path):
+		elif not DirectoryMapper.isfile(plugin_id, 'backup',path):
 			return 404, "File Not Found"
-		elif not os.access(path, os.R_OK):
+		elif not DirectoryMapper.access(plugin_id, 'backup',path, os.R_OK):
 			return 403, "Access Denied"
 		else:
 			return 200, "OK"
@@ -61,13 +64,13 @@ class LocalFileAdapter(requests.adapters.BaseAdapter):
 		@todo: Should I bother filling `response.headers` and processing
 				   If-Modified-Since and friends using `os.stat`?
 		"""
-		path = os.path.normcase(os.path.normpath(url2pathname(req.path_url)))
+		relative_path = url2pathname(req.path_url)[1:] # remove leading /
 		response = requests.Response()
 
-		response.status_code, response.reason = self._chkpath(req.method, path)
+		response.status_code, response.reason = self._chkpath(req.method, relative_path)
 		if response.status_code == 200 and req.method.lower() != 'head':
 			try:
-				response.raw = open(path, 'rb')
+				response.raw = DirectoryMapper.open(plugin_id, 'backup',relative_path, 'rb')
 			except (OSError, IOError) as err:
 				response.status_code = 500
 				response.reason = str(err)
@@ -87,7 +90,7 @@ class LocalFileAdapter(requests.adapters.BaseAdapter):
 
 
 class SplPlugin(StreamChannel):
-	plugin_id = 'channels_satip'
+	#plugin_id = 'channels_satip'
 	plugin_names = ['SatIP Live']
 
 	def __init__(self, modref):
@@ -95,7 +98,7 @@ class SplPlugin(StreamChannel):
 		'''
 		# do the plugin specific initialisation first
 		self.origin_dir = os.path.dirname(__file__)
-		self.config = JsonStorage(self.plugin_id, 'backup', "config.json", {
+		self.config = JsonStorage(plugin_id, 'backup', "config.json", {
 			'channel_list_urls': [
 				{
 					'url': 'file:///Astra_19.2.xspf',
@@ -116,9 +119,9 @@ class SplPlugin(StreamChannel):
 		# at last announce the own plugin
 		super().__init__(modref)
 		modref.message_handler.add_event_handler(
-			self.plugin_id, 0, self.event_listener)
+			plugin_id, 0, self.event_listener)
 		modref.message_handler.add_query_handler(
-			self.plugin_id, 0, self.query_handler)
+			plugin_id, 0, self.query_handler)
 
 	def add_movie(self, provider, full_url):
 		plugin_name = self.plugin_names[0]
@@ -214,21 +217,9 @@ class SplPlugin(StreamChannel):
 	def loadChannels(self):
 		for channel_info in self.config.read('channel_list_urls'):
 			requests_session = requests.session()
-			url_st = urlparse(channel_info['url'])
-			path= url_st.path
-			if url_st.scheme=='file':
-				path=os.path.normcase(os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)),path[1:])))
-			full_url = urlunparse((
-				url_st.scheme,
-				url_st.netloc,
-				path,
-				url_st.params,
-				url_st.query,
-				url_st.fragment,
-			))
-
 			requests_session.mount('file://', LocalFileAdapter())
-			req = requests_session.get(full_url)
+			#req = requests_session.get(full_url)
+			req = requests_session.get(channel_info['url'])
 
 			if channel_info['type'] == 'xspf':
 				self.load_xspf(req,channel_info['scheme'],channel_info['netloc'])

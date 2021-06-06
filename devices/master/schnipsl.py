@@ -25,8 +25,10 @@ logger = schnipsllogger.getLogger(__name__)
 
 DirectoryMapper(os.path.abspath(os.path.dirname(__file__)),
 	{
-		'backup' : 'config/backup',
-		'runtime' : 'config/runtime',
+		'backup' : 'volumes/backup',
+		'runtime' : 'volumes/runtime',
+		'tmpfs' : 'volumes/tmpfs',
+		'videos' : 'volumes/videos',
 	}
 )
 modref = ModRef() # create object to store all module instances

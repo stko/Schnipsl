@@ -31,6 +31,7 @@ sys.path.append(os.path.abspath(ScriptPath))
 # own local modules
 
 from jsonstorage import JsonStorage
+from directorymapper import DirectoryMapper
 from messagehandler import Query
 from classes import MovieInfo
 import defaults
@@ -51,7 +52,7 @@ class SplPlugin(EPGProvider):
 
 
 		# at last announce the own plugin
-		super().__init__(modref, self.origin_dir)
+		super().__init__(modref)
 		modref.message_handler.add_event_handler(
 		self.plugin_id, 0, self.event_listener)
 		modref.message_handler.add_query_handler(
@@ -91,6 +92,9 @@ class SplPlugin(EPGProvider):
 		'''
 		return initial_plugin_name
 
+	def get_plugin_id(self ):
+		return self.plugin_id
+
 	def get_plugin_names(self ):
 		return self.plugin_names
 
@@ -108,13 +112,11 @@ class SplPlugin(EPGProvider):
 
 	# ------ plugin specific routines
 
-	def getAbsolutePath(self, file_name):
-		return os.path.join(self.origin_dir, file_name)
-
 	def check_for_updates(self):
-		file_name=self.getAbsolutePath('online_filmlist')
+		file_name='online_filmlist'
+		full_file_name=DirectoryMapper.abspath(self.plugin_id, 'tmpfs',file_name, True)
 		try: # does the file exist at all already?
-			filmlist_time_stamp= os.path.getmtime(file_name)
+			filmlist_time_stamp= DirectoryMapper.getmtime(self.plugin_id, 'tmpfs',file_name)
 		except:
 			filmlist_time_stamp=0
 		if filmlist_time_stamp<time.time() - 60*60*48: # file is older as 48 hours
@@ -137,13 +139,13 @@ class SplPlugin(EPGProvider):
 						self.logger.info(f'Mediathek filmlist url {url}')
 				if url:
 					try:
-						urlretrieve(url,file_name+'.pack')
+						urlretrieve(url,full_file_name+'.pack')
 						self.logger.info("filmlist downloaded")
 					except  Exception as e:
 						self.logger.warning(f'failed filmlist download {str(e)}')
 					try:
-						with open(file_name,'wb') as unpack_file_handle:
-							with lzma.open(file_name+'.pack','rb') as archive_file_handle:
+						with DirectoryMapper.open(self.plugin_id, 'tmpfs',file_name,'wb') as unpack_file_handle:
+							with lzma.open(DirectoryMapper.open(self.plugin_id, 'tmpfs',file_name+'.pack','rb')) as archive_file_handle:
 								bytes = archive_file_handle.read(4096)
 								while bytes:
 									unpack_file_handle.write(bytes)
@@ -160,7 +162,7 @@ class SplPlugin(EPGProvider):
 		loader_remember_data={'provider':'','category':''}
 
 		try:
-			with open(file_name) as data:
+			with DirectoryMapper.open(self.plugin_id, 'tmpfs',file_name) as data:
 				self.reset_index()
 				with self.whoosh_ix.writer() as whoosh_writer:
 					count=0

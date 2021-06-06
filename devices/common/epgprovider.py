@@ -36,11 +36,11 @@ ScriptPath = os.path.realpath(os.path.join(
 sys.path.append(os.path.abspath(ScriptPath))
 
 # own local modules
-
+from directorymapper import DirectoryMapper
 
 class EPGProvider(SplThread):
 
-	def __init__(self, modref, child_dir):
+	def __init__(self, modref):
 		''' inits the plugin
 		'''
 		self.modref = modref
@@ -64,7 +64,7 @@ class EPGProvider(SplThread):
 			description=STORED,
 			timestamp=DATETIME(stored=True)
 		)
-		self.index_dir = os.path.join(child_dir, 'indexdir')
+		self.index_dir = DirectoryMapper.abspath(self.get_plugin_id(), 'runtime','indexdir', True)
 		if not os.path.exists(self.index_dir):
 			os.mkdir(self.index_dir)
 		if index.exists_in(self.index_dir):
@@ -88,10 +88,17 @@ class EPGProvider(SplThread):
 		'''
 
 	@abstractmethod
+	def get_plugin_id(self):
+		''' 
+		get child class plugin id
+		'''
+
+	@abstractmethod
 	def get_plugin_names(self):
 		''' 
 		get child class plugin name
 		'''
+
 	@abstractmethod
 	def get_categories(self):
 		''' 

@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from directorymapper import DirectoryMapper
 from splthread import SplThread
 from messagehandler import Query
 from classes import MovieInfo
@@ -117,8 +118,7 @@ class SplPlugin(SplThread):
 				ext='.mp4'
 				if movie_info['mime']=='video/MP2T':
 					ext='.mp4'
-				file_path = os.path.join(
-					self.config.read('path'), uri_base64+ext)
+				file_path = DirectoryMapper.abspath('','video',	self.config.read('path')+ uri_base64+ext)
 				if movie_info['source_type'] == defaults.MOVIE_TYPE_RECORD:
 					self.records.write(uri, {
 						# in case of a record we set start and duration to 0 to indicate that the recording can start immediadly & has no duration

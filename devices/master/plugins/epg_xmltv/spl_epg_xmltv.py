@@ -3,6 +3,7 @@
 
 
 # Standard module
+from directorymapper import DirectoryMapper
 from jsonstorage import JsonStorage
 from messagehandler import Query
 from classes import MovieInfo
@@ -187,16 +188,12 @@ class SplPlugin(SplThread):
 
 	# ------ plugin specific routines
 
-	def getAbsolutePath(self, file_name):
-		return os.path.join(self.origin_dir, file_name)
-
 	def load_filmlist(self, file_name):
-		origin_dir = os.path.dirname(__file__)
-		file_name = os.path.join(origin_dir, file_name)
+		full_file_name=DirectoryMapper.abspath(self.plugin_id, 'tmpfs',file_name, True)
 		update_list=None
-		print(os.path.abspath(file_name))
+		print(full_file_name)
 		try:  # does the file exist at all already?
-			xmltv_updates_time_stamp = os.path.getmtime(file_name)
+			xmltv_updates_time_stamp = DirectoryMapper.getmtime(self.plugin_id, 'tmpfs',file_name)
 		except:
 			xmltv_updates_time_stamp = 0
 		print("timestamp", xmltv_updates_time_stamp, time.time())
@@ -204,11 +201,11 @@ class SplPlugin(SplThread):
 			print("Retrieve xmltv_updates list")
 			try:
 				urlretrieve(
-					'https://xmltv.xmltv.se/datalist.xml.gz', file_name)
+					'https://xmltv.xmltv.se/datalist.xml.gz', full_file_name)
 			except Exception as e:
 				print('failed xmltv_updates download', str(e))
 		try:
-			with open(file_name, 'rb') as xmltv_updates_file_handle:
+			with DirectoryMapper.open(self.plugin_id, 'tmpfs',file_name, 'rb') as xmltv_updates_file_handle:
 				update_list = parse(xmltv_updates_file_handle)
 		except Exception as e:
 			print('failed xmltv_updates read', str(e))

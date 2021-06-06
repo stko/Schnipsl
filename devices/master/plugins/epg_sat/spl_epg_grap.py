@@ -39,6 +39,7 @@ from classes import MovieInfo
 import defaults
 from epgprovider import EPGProvider
 import schnipsllogger
+from directorymapper import DirectoryMapper
 
 class SplPlugin(EPGProvider):
 	plugin_id = 'satepg'
@@ -60,7 +61,7 @@ class SplPlugin(EPGProvider):
 		)
 		self.stream_source=self.config.read('stream_source') # this defines who is the real data provider for the entries found in the EPG data
 
-		self.epgbuffer_file_name = os.path.join(self.origin_dir, "epgbuffer.ts")
+		self.epgbuffer_file_name = DirectoryMapper.abspath(self.plugin_id, 'tmpfs','epgbuffer.ts', True)
 
 		self.process=None
 		self.epg_storage = JsonStorage(self.plugin_id, 'runtime',  "epgdata.json", {'epgdata':{}})
@@ -70,7 +71,7 @@ class SplPlugin(EPGProvider):
 		self.timeline = {}
 
 		# at last announce the own plugin
-		super().__init__(modref, self.origin_dir)
+		super().__init__(modref)
 		modref.message_handler.add_event_handler(
 			self.plugin_id, 0, self.event_listener)
 		modref.message_handler.add_query_handler(
@@ -115,6 +116,9 @@ class SplPlugin(EPGProvider):
 		'''
 		return self.stream_source
 
+	def get_plugin_id(self ):
+		return self.plugin_id
+
 	def get_plugin_names(self ):
 		return self.plugin_names
 
@@ -132,9 +136,6 @@ class SplPlugin(EPGProvider):
 
 
 	# ------ plugin specific routines
-
-	def getAbsolutePath(self, file_name):
-		return os.path.join(self.origin_dir, file_name)
 
 	def check_for_updates(self):
 		# check for updates:
