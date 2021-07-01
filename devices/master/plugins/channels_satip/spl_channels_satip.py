@@ -112,6 +112,12 @@ class SplPlugin(StreamChannel):
 					'scheme': '',
 					'netloc': ''
 				},
+				{
+					"netloc": "192.168.1.113",
+					"scheme": "http",
+					"type": "m3u",
+					"url": "http://192.168.1.113:8080/m3u"
+				}
 			]
 		}
 		)
