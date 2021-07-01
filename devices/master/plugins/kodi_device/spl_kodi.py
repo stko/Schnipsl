@@ -42,7 +42,7 @@ class Kodi:
 		self.supports_pause = False
 		self.supports_seek = False
 		self.online = True
-		self.host=service_info.server
+		self.host=service_info.parsed_addresses()[0]
 		self.port=service_info.port
 		self.cast=self
 		self.current_time=-1
@@ -273,8 +273,8 @@ class Kodi:
 			if 'error' in response:
 				print(payload,response)
 			return response
-		except:
-			print('Kodi jsonRPC exception on {0}'.format(self.host))
+		except Exception as ex:
+			print('Kodi jsonRPC exception on {0}: {1}'.format(self.host,str(ex)))
 			return None
 
 	def time_to_timestamp(self,time_struct):
