@@ -34,6 +34,7 @@ ADD devices/common ../common
 WORKDIR /app
 COPY installdockers.sh /tmp/installdockers.sh
 RUN chmod +x /tmp/installdockers.sh
+RUN /usr/local/bin/python -m pip install --upgrade pip
 RUN bash -c "/tmp/installdockers.sh"
 
 WORKDIR /app/devices/master
