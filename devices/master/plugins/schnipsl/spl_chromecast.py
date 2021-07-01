@@ -121,13 +121,16 @@ class SplPlugin(SplThread):
 		if queue_event.type == defaults.QUERY_FEASIBLE_DEVICES:
 			res = []
 			print("start storing chromecast devices")
-			for service_tuple in self.listener.services.values():
-				service_list = list(service_tuple)
-				device_type = service_list[2]
-				device_friedly_name = service_list[3]
-				res.append(device_friedly_name)
-				print(
-					"add chromecast device_friedly_name {0}", device_friedly_name)
+			if self.browser:
+				for service_tuple in self.browser.services.values():
+					service_list = list(service_tuple)
+					device_type = service_list[2]
+					device_friedly_name = service_list[3]
+					res.append(device_friedly_name)
+					print(
+						"add chromecast device_friedly_name {0}", device_friedly_name)
+			else:
+				print("ERROR: self.browser not set in chromecast ?!!?")
 			print("end storing chromecast devices")
 			return res[:max_result_count]
 		return[]
@@ -140,18 +143,18 @@ class SplPlugin(SplThread):
 
 	def list_devices(self):
 		print("Currently known cast devices:")
-		for uuid, service in self.listener.services.items():
+		for uuid, service in self.browser.services.items():
 			print("  {} {}".format(uuid, service))
 
 	def get_device_friendly_name_of_uuid(self, uuid):
-		if uuid in self.listener.services:
-			service_tuple = self.listener.services[uuid]
+		if self.browser and uuid in self.browser.services:
+			service_tuple = self.browser.services[uuid]
 			service_list = list(service_tuple)
 			device_friedly_name = service_list[3]
 			return device_friedly_name
 		return None
 
-	def add_service(self, uuid, name):
+	def add_cast(self, uuid, service):
 		# print("Found mDNS service for cast name {}".format(name))
 		device_friendly_name = self.get_device_friendly_name_of_uuid(uuid)
 		if device_friendly_name in self.devices:
@@ -160,7 +163,7 @@ class SplPlugin(SplThread):
 
 		#self.list_devices()
 
-	def remove_service(self, uuid, name, service):
+	def remove_cast(self, uuid, service, cast_info):
 		# print("Lost mDNS service for cast name {} {}".format(
 		#	name, service))
 		device_friendly_name = self.get_device_friendly_name_of_uuid(uuid)
@@ -174,7 +177,7 @@ class SplPlugin(SplThread):
 				None, defaults.DEVICE_PLAY_STATUS, cast_status)
 		#self.list_devices()
 
-	def update_callback(self, uuid, name):
+	def update_cast(self, uuid, service):
 		# print("Updated mDNS service for name {}".format(name))
 		device_friendly_name = self.get_device_friendly_name_of_uuid(uuid)
 		if device_friendly_name in self.devices:
@@ -237,15 +240,14 @@ class SplPlugin(SplThread):
 	def _run(self):
 		''' starts the server
 		'''
-		self.listener = pychromecast.CastListener(
-			self.add_service, self.remove_service, self.update_callback)
-		self.browser = pychromecast.discovery.start_discovery(
-			self.listener, self.zconf)
+		self.browser = pychromecast.CastBrowser(self,self.zconf)
+		self.browser = self.browser.start_discovery()
+		print('Chromecast is started',self.browser)
 		while self.runFlag:
 			time.sleep(2)
 			for device_friendly_name in self.devices:
 				self.send_device_play_status(device_friendly_name, False)
 
 	def _stop(self):
-		pychromecast.stop_discovery(self.browser)
+		self.browser.stop_discovery(self.browser)
 		self.runFlag = False
