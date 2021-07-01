@@ -114,11 +114,13 @@ class SplPlugin(EPGProvider):
 
 	def check_for_updates(self):
 		file_name='online_filmlist'
-		full_file_name=DirectoryMapper.abspath(self.plugin_id, 'tmpfs',file_name, True)
-		try: # does the file exist at all already?
-			filmlist_time_stamp= DirectoryMapper.getmtime(self.plugin_id, 'tmpfs',file_name)
-		except:
-			filmlist_time_stamp=0
+		filmlist_time_stamp= self.provider_storage.read('filmlist_time_stamp',0)
+		if not filmlist_time_stamp:
+			full_file_name=DirectoryMapper.abspath(self.plugin_id, 'tmpfs',file_name, True)
+			try: # does the file exist at all already?
+				filmlist_time_stamp= DirectoryMapper.getmtime(self.plugin_id, 'tmpfs',file_name)
+			except:
+				filmlist_time_stamp=0
 		if filmlist_time_stamp<time.time() - 60*60*48: # file is older as 48 hours
 			'''
 			Bootstrap to read the filmlist:
@@ -151,6 +153,7 @@ class SplPlugin(EPGProvider):
 									unpack_file_handle.write(bytes)
 									bytes = archive_file_handle.read(4096)
 							self.reset_index() # destroy the existing index
+							self.provider_storage.write('filmlist_time_stamp',time.time())
 							self.logger.info('filmlist server list unpacked')
 					except  Exception as e:
 						print('failed filmlist unpack',str(e))
