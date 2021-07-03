@@ -241,7 +241,7 @@ class SplPlugin(SplThread):
 		''' starts the server
 		'''
 		self.browser = pychromecast.CastBrowser(self,self.zconf)
-		self.browser = self.browser.start_discovery()
+		self.browser.start_discovery()
 		print('Chromecast is started',self.browser)
 		while self.runFlag:
 			time.sleep(2)
