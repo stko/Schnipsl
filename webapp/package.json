@@ -14,6 +14,7 @@
     "dayjs-plugin-utc": "^0.1.2",
     "register-service-worker": "^1.7.2",
     "vue": "^2.6.14",
+    "vue-cli": "^2.9.6",
     "vue-i18n": "^8.24.5",
     "vue-round-slider": "^1.0.1",
     "vue-router": "^3.5.2",
