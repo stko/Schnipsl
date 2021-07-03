@@ -4,7 +4,7 @@
 	"main_streams": "Live",
 	"main_records": "Aufnahmen",
 	"main_timers": "Timer",
-	"main_noconnect": "Offline",
+	"main_noconnect": "Verbinde..",
 	"settings": "Einstellungen",
 	"settings_name_intro": "Wie soll Dein Name in Schnipsl sein?",
 	"settings_name_help": "Gebe hier Deinen Wunsch-Namen ein",

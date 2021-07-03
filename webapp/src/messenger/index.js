@@ -109,10 +109,10 @@ class WebService {
           this.modules[prefix].close()
         }
       }
-      console.log('Socket is closed. Reconnect will be attempted in 2 second.', e.reason);
+      console.log('Socket is closed. Reconnect will be attempted in 1 second.', e.reason);
       setTimeout(function () {
         wshandler.connect();
-      }, 2000);
+      }, 1000);
     }
 
     //when we got a message from a signaling server 
