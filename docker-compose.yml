@@ -1,0 +1,27 @@
+version: '3.6'
+
+services:
+  schnipsl:
+    image: schnipsl
+    volumes:
+      - /etc/localtime:/etc/localtime
+      - schnipsl-backup:/app/devices/master/volumes/backup
+      - schnipsl-runtime:/app/devices/master/volumes/runtime
+    depends_on:
+      - webfsd
+    restart: always
+    network_mode: "host"
+    environment:
+      - TZ=Europe/Berlin
+    
+  webfsd:
+    image: "jonashaag/webfsd"
+    ports:
+      - 9092:80
+    volumes:
+        - /etc/localtime:/etc/localtime
+        - schnipsl-video:/srv
+    restart: always
+    environment:
+      - TZ=Europe/Berlin
+    
