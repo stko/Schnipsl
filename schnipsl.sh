@@ -55,7 +55,7 @@ function teststop {
 
 function testbuild {
 	teststop
-	echo '🛑 rebuild and start the schnipsl container '
+	echo '🛑 rebuild  the schnipsl container '
 	echo 'Search the schnipsl container '
 	containerid=$(docker ps -qa --filter "name=schnipsl")
 	if [[  -z "$containerid" ]]
@@ -85,12 +85,59 @@ function teststart {
 		--name schnipsl \
 		-v schnipsl-backup:/app/devices/master/volumes/backup \
 		-v schnipsl-runtime:/app/devices/master/volumes/runtime \
-		-v schnipsl-video:/srv \
+		-v schnipsl-video:/app/devices/master/volumes/videos/record_hd \
 		--network=host \
 		schnipsl
 	else
 		echo "start existing container"
 		docker start  -i schnipsl
+	fi
+}
+
+
+
+function fullbackup  {
+	if [[  -z "$1" || !  -d "$1" ]]
+	then
+		echo "⚠️ no or invalid target directory given!: $1"
+	else
+		echo "start backup: copy .../volumes to $1"
+		docker cp schnipsl:/app/devices/master/volumes "$1"
+	fi
+}
+
+
+
+function fullrestore  {
+	if [[  -z "$1" || !  -d "$1" ]]
+	then
+		echo "⚠️ no or invalid target directory given!: $1"
+	else
+		echo "start backup: copy  $1 to .../volumes"
+		docker cp "$1" schnipsl:/app/devices/master/volumes
+	fi
+}
+
+
+function backup  {
+	if [[  -z "$1" || !  -d "$1" ]]
+	then
+		echo "⚠️ no or invalid target directory given!: $1"
+	else
+		echo "start backup: copy .../volumes/backup to $1/backup"
+		docker cp schnipsl:/app/devices/master/volumes/backup "$1/backup"
+	fi
+}
+
+
+
+function fullrestore  {
+	if [[  -z "$1" || !  -d "$1" ]]
+	then
+		echo "⚠️ no or invalid target directory given!: $1"
+	else
+		echo "start backup: copy  $1/backup to .../volumes/backup"
+		docker cp "$1/backup" schnipsl:/app/devices/master/volumes/backup
 	fi
 }
 
@@ -157,6 +204,18 @@ case "$1" in
 	"teststop")
 		teststop
 		;;
+	"fullbackup")
+		fullbackup $2
+		;;
+	"fullrestore")
+		fullrestore  $2
+		;;
+	"backup")
+		backup  $2
+		;;
+	"restore")
+		restore  $2
+		;;
 	* )
 		cat << EOF
 📺 Schnipsl – setup script
@@ -165,6 +224,10 @@ Usage:
 schnipsl.sh update – update to the latest release version
 schnipsl.sh start – run all containers
 schnipsl.sh stop – stop all containers
+schnipsl.sh backup targetdir – backups all config data into targetdir/backup
+schnipsl.sh restore sourcedir – restore all config data from targetdir/backup
+schnipsl.sh fullbackup targetdir – backups all data, also runtime data and videos, into targetdir
+schnipsl.sh fullrestore sourcedir– – restores all data, also runtime data and videos, from targetdir
 
 Check https://github.com/stko/schnipsl/ for updates.
 EOF
