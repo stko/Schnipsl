@@ -48,7 +48,7 @@ class SplPlugin(SplThread):
 
 		# do the plugin specific initialisation first
 		self.origin_dir = os.path.dirname(__file__)
-		self.config = JsonStorage(self.plugin_id, 'backup', "config.json", {'path': '/srv', 'www-root': 'http://schnipsl:9092/'})
+		self.config = JsonStorage(self.plugin_id, 'backup', "config.json", {'path': DirectoryMapper.abspath(self.plugin_id, 'videos','', True), 'www-root': 'http://schnipsl:9092/'})
 		self.records = JsonStorage(self.plugin_id, 'runtime', "records.json", {})
 		self.record_threats={} # we need to store the thread pointers seperate from self.records, as we can't store them as json
 		self.last_recorded_time =  0 # remembers how long the last recording action is away
