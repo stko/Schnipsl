@@ -157,9 +157,17 @@ class SplPlugin(SplThread):
 	def add_cast(self, uuid, service):
 		# print("Found mDNS service for cast name {}".format(name))
 		device_friendly_name = self.get_device_friendly_name_of_uuid(uuid)
-		if device_friendly_name in self.devices:
-			cast_info = self.devices[device_friendly_name]
-			cast_info.online = True
+		if device_friendly_name:
+			if device_friendly_name in self.devices:
+				cast_info = self.devices[device_friendly_name]
+				cast_info.online = True
+			else:
+				if self.browser and uuid in self.browser.services:
+					self.devices[device_friendly_name] = type('', (object,), {
+						'cast': None,
+						'cast_info': self.browser.services[uuid],
+						'online': True
+					})()
 
 		#self.list_devices()
 
@@ -207,7 +215,7 @@ class SplPlugin(SplThread):
 	def send_device_play_status(self, device_friendly_name, state_change_flag):
 		if device_friendly_name in self.devices:
 			cast_status = self.devices[device_friendly_name]
-			if not cast_status.online:
+			if not cast_status.cast or not cast_status.online:
 				return  # device is actual not acessable
 			cast = cast_status.cast
 			try:
@@ -249,5 +257,5 @@ class SplPlugin(SplThread):
 				self.send_device_play_status(device_friendly_name, False)
 
 	def _stop(self):
-		self.browser.stop_discovery(self.browser)
+		self.browser.stop_discovery()
 		self.runFlag = False
