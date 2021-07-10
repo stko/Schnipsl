@@ -51,7 +51,8 @@ class SplPlugin(SplThread):
 			'playTime': '00:00',
 			'remainingTime': '00:00'
 		}
-		self.movielist_storage = JsonStorage(self.plugin_id, 'runtime', "movielist.json", {'movielist':{}})
+		self.movielist_storage = JsonStorage(
+			self.plugin_id, 'runtime', "movielist.json", {'movielist': {}})
 		self.movielist = self.movielist_storage.read('movielist', {})
 		self.lock = threading.Lock()
 
@@ -88,7 +89,7 @@ class SplPlugin(SplThread):
 				# starts to play movie on device
 			print("plays schnipsl {0} on device ".format(
 				queue_event.data['uri']))
-			self.user_message(queue_event.user, 'play_request','close')
+			self.user_message(queue_event.user, 'play_request', 'close')
 			movie_info_list = self.modref.message_handler.query(
 				Query(queue_event.user, defaults.QUERY_MOVIE_ID, queue_event.data['uri']))
 			if movie_info_list:
@@ -123,11 +124,11 @@ class SplPlugin(SplThread):
 					})
 		if queue_event.type == defaults.MSG_SOCKET_EDIT_PLAY_ADD_REQUEST:
 			self.update_movie_list(queue_event)
-			self.user_message(queue_event.user, 'play_added','close')
+			self.user_message(queue_event.user, 'play_added', 'close')
 
 		if queue_event.type == defaults.MSG_SOCKET_EDIT_RECORD_ADD_REQUEST:
 			self.update_movie_list(queue_event, True)
-			self.user_message(queue_event.user, 'record_added','close')
+			self.user_message(queue_event.user, 'record_added', 'close')
 		if queue_event.type == defaults.MSG_SOCKET_EDIT_PLAY_REQUEST:
 			uuid, movie_uri = self.update_movie_list(queue_event)
 			if uuid:
@@ -229,7 +230,7 @@ class SplPlugin(SplThread):
 					self.movielist_storage.write(
 						'movielist', self.movielist)
 				else:
-					self.movielist[uuid]['damaged']=True
+					self.movielist[uuid]['damaged'] = True
 		if queue_event.type == defaults.MSG_SOCKET_PLAYER_STOP_AND_RECORD or queue_event.type == defaults.MSG_SOCKET_HOME_RECORD_REQUEST:
 			if queue_event.type == defaults.MSG_SOCKET_PLAYER_STOP_AND_RECORD:
 				self.modref.message_handler.queue_event(queue_event.user, defaults.MSG_SOCKET_PLAYER_KEY, {
@@ -293,10 +294,10 @@ class SplPlugin(SplThread):
 					{
 						'uuid': uuid,
 						'icon': 'mdi-magnify',
-						'iconClass': 'red lighten-1 white--text',
-						'query': movie_list_item['query'],
-						'movie_info': movie_list_item['movie_info'],
-						'current_time': ''
+								'iconClass': 'red lighten-1 white--text',
+								'query': movie_list_item['query'],
+								'movie_info': movie_list_item['movie_info'],
+								'current_time': ''
 					}
 				)
 			if movie_list_item['type'] == defaults.MOVIE_TYPE_RECORD_TEMPLATE:
@@ -304,10 +305,10 @@ class SplPlugin(SplThread):
 					{
 						'uuid': uuid,
 						'icon': 'mdi-record-rec',
-						'iconClass': 'red lighten-1 white--text',
-						'query': movie_list_item['query'],
-						'movie_info': movie_list_item['movie_info'],
-						'current_time': ''
+								'iconClass': 'red lighten-1 white--text',
+								'query': movie_list_item['query'],
+								'movie_info': movie_list_item['movie_info'],
+								'current_time': ''
 					}
 				)
 			if movie_list_item['type'] == defaults.MOVIE_TYPE_RECORD:
@@ -318,10 +319,10 @@ class SplPlugin(SplThread):
 					{
 						'uuid': uuid,
 						'icon': 'mdi-play-pause',
-						'iconClass': 'blue white--text',
-						'query': movie_list_item['query'],
-						'movie_info': movie_list_item['movie_info'],
-						'current_time': user_current_time
+								'iconClass': 'blue white--text',
+								'query': movie_list_item['query'],
+								'movie_info': movie_list_item['movie_info'],
+								'current_time': user_current_time
 					}
 				)
 			if movie_list_item['type'] == defaults.MOVIE_TYPE_STREAM:
@@ -329,10 +330,10 @@ class SplPlugin(SplThread):
 					{
 						'uuid': uuid,
 						'icon': 'mdi-radio-tower',
-						'iconClass': 'green lighten-1 white--text',
-						'query': movie_list_item['query'],
-						'movie_info': movie_list_item['movie_info'],
-						'current_time': ''
+								'iconClass': 'green lighten-1 white--text',
+								'query': movie_list_item['query'],
+								'movie_info': movie_list_item['movie_info'],
+								'current_time': ''
 					}
 				)
 			if movie_list_item['type'] == defaults.MOVIE_TYPE_TIMER:
@@ -340,16 +341,17 @@ class SplPlugin(SplThread):
 					{
 						'uuid': uuid,
 						'icon': 'mdi-clock',
-						'iconClass': 'amber white--text',
-						'query': movie_list_item['query'],
-						'movie_info': movie_list_item['movie_info'],
-						'current_time': ''
+								'iconClass': 'amber white--text',
+								'query': movie_list_item['query'],
+								'movie_info': movie_list_item['movie_info'],
+								'current_time': ''
 					}
 				)
-		res['templates'].sort(key=lambda x:x['query']['name'])
-		res['records'].sort(key=lambda x:x['movie_info']['category']+x['movie_info']['title'])
-		res['streams'].sort(key=lambda x:x['movie_info']['provider'])
-		res['timers'].sort(key=lambda x:x['movie_info']['start'])
+		res['templates'].sort(key=lambda x: x['query']['name'].lower())
+		res['records'].sort(key=lambda x: (
+			x['movie_info']['category'] + x['movie_info']['title']).lower())
+		res['streams'].sort(key=lambda x: x['movie_info']['provider'].lower())
+		res['timers'].sort(key=lambda x: x['movie_info']['start'])
 		return res
 
 	def update_movie_list(self, queue_event, record_request=False):
