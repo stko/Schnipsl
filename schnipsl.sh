@@ -131,7 +131,7 @@ function backup  {
 
 
 
-function fullrestore  {
+function restore  {
 	if [[  -z "$1" || !  -d "$1" ]]
 	then
 		echo "⚠️ no or invalid target directory given!: $1"

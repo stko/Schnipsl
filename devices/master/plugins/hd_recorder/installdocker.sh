@@ -1,5 +1,4 @@
 #!/bin/bash
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 cd $SCRIPT_DIR
-apt-get update
-apt-get install -y curl ffmpeg
+sudo apt-get install -y curl ffmpeg
