@@ -346,6 +346,10 @@ class SplPlugin(SplThread):
 						'current_time': ''
 					}
 				)
+		res['templates'].sort(key=lambda x:x['query']['name'])
+		res['records'].sort(key=lambda x:x['movie_info']['category']+x['movie_info']['title'])
+		res['streams'].sort(key=lambda x:x['movie_info']['provider'])
+		res['timers'].sort(key=lambda x:x['movie_info']['start'])
 		return res
 
 	def update_movie_list(self, queue_event, record_request=False):
