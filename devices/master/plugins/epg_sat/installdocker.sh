@@ -4,3 +4,4 @@ cd $SCRIPT_DIR
 apt-get install -y nodejs npm python3-xmltodict libyajl-dev curl ffmpeg
 npm install dvbtee
 sudo pip3 install jsonslicer xmltodict
+
