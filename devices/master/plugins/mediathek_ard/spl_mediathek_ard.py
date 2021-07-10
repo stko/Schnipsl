@@ -114,9 +114,9 @@ class SplPlugin(EPGProvider):
 
 	def check_for_updates(self):
 		file_name='online_filmlist'
+		full_file_name=DirectoryMapper.abspath(self.plugin_id, 'tmpfs',file_name, True)
 		filmlist_time_stamp= self.provider_storage.read('filmlist_time_stamp',0)
 		if not filmlist_time_stamp:
-			full_file_name=DirectoryMapper.abspath(self.plugin_id, 'tmpfs',file_name, True)
 			try: # does the file exist at all already?
 				filmlist_time_stamp= DirectoryMapper.getmtime(self.plugin_id, 'tmpfs',file_name)
 			except:
