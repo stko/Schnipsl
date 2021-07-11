@@ -182,6 +182,13 @@ Alternatively create a Git clone of the repository."
 	start
 }
 
+function login {
+	echo "login into  existing container"
+	docker exec -it schnipsl /bin/bash
+}
+
+
+
 check_dependencies
 
 case "$1" in
@@ -217,6 +224,9 @@ case "$1" in
 		;;
 	"restore")
 		restore  $2
+		;;
+	"login")
+		login
 		;;
 	* )
 		cat << EOF
