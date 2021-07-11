@@ -72,6 +72,8 @@ function testbuild {
 	docker -D build  -t schnipsl .
 	if [ ! $? -eq 0 ]; then
 		echo '⚠️  Could not build the Schnipsl image'
+	else
+		echo '👍  Container successfully build'
 	fi
 
 }

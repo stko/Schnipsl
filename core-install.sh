@@ -5,7 +5,7 @@ su -s ${USER}
 
 sudo apt -y update
 sudo apt -y upgrade
-sudo apt install -y docker docker-compose tmux git pip3
+sudo apt install -y docker docker-compose tmux git pip3 nodejs npm 
 
 docker pull jonashaag/webfsd
 docker tag 5b489e7273f1  webfsd:latest
