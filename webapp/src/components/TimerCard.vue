@@ -21,27 +21,10 @@
 				}}</div>
 				<div id="duration">{{ duration(item.movie_info.duration) }}</div>
 				<div id="next">{{ item.movie_info.next_title }}</div>
-				<div id="edit"
-					><v-btn icon @click="nav2Edit(item.uuid, item.query)">
-						<v-icon color="orange darken-1">mdi-pencil</v-icon>
-					</v-btn></div
-				>
-				<div id="share">
-					<v-btn icon @click="share(item.uuid)">
-						<v-icon color="orange darken-1">mdi-share-variant</v-icon>
-					</v-btn></div
-				>
-				<!-- A timer card does not have a record button, as it is already a record request
-				<div id="record">
-					<v-btn
-						icon
-						v-if="item.movie_info.recordable"
-						@click="requestRecordAdd(item.movie_info.uri)"
-					>
-						<v-icon color="red darken-1">mdi-record</v-icon>
-					</v-btn>
+				<div id="edit">
+					<card-menu :item="item" />
 				</div>
-				--->
+
 				<div id="show">
 					<v-btn icon @click="description_show = !description_show">
 						<v-icon color="orange darken-1">{{ description_show ? 'mdi-chevron-up' : 'mdi-chevron-down' }}</v-icon>
@@ -65,9 +48,12 @@
 	</div>
 </template>
 <script>
+import CardMenu from "./CardMenu.vue";
 export default {
 	name: "timercard",
-
+	components: {
+		CardMenu
+	},
 	props: {
 		item: Object
 	},
