@@ -163,25 +163,6 @@
 			</v-list-item>
 		</v-list>
 		<v-row justify="center">
-			<v-dialog v-model="edit_delete_dialog_show" scrollable max-width="300px">
-				<v-card>
-					<v-card-title>{{ $t("edit_delete_dialog_header") }}</v-card-title>
-					<v-divider></v-divider>
-					<v-card-actions>
-						<v-btn
-							color="blue darken-1"
-							text
-							@click="edit_delete_dialog_show = false"
-							>{{ $t("edit_delete_dialog_cancel") }}</v-btn
-						>
-						<v-btn color="blue darken-1" text @click="edit_delete()">{{
-							$t("edit_delete_dialog_select")
-						}}</v-btn>
-					</v-card-actions>
-				</v-card>
-			</v-dialog>
-		</v-row>
-		<v-row justify="center">
 			<v-dialog dark v-model="waitSearchResults" max-width="300px">
 				<!--<v-dialog  max-width="300px"> -->
 				<v-card>
@@ -209,7 +190,6 @@ dayjs.extend(dayjsPluginUTC, { parseToLocal: true });
 export default {
 	name: "Edit",
 	data: () => ({
-		edit_delete_dialog_show: false,
 		uuid: 0,
 		query: {},
 		movie_info_list: [],
@@ -280,14 +260,6 @@ export default {
 				query: this.query,
 				movie_uri: movie_uri,
 			});
-		},
-		edit_delete() {
-			console.log("requestDelete", this.uuid);
-			this.edit_delete_dialog_show = false;
-			messenger.emit("edit_delete_request", {
-				uuid: this.uuid,
-			});
-			this.nav2Main();
 		},
 		messenger_onMessage(type, data) {
 			console.log("incoming message to edit", type, data);

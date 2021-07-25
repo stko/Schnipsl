@@ -7,6 +7,7 @@ services:
       - /etc/localtime:/etc/localtime
       - schnipsl-backup:/app/devices/master/volumes/backup
       - schnipsl-runtime:/app/devices/master/volumes/runtime
+      - schnipsl-video:/app/devices/master/volumes/videos/record_hd
     depends_on:
       - webfsd
     restart: always
@@ -15,7 +16,7 @@ services:
       - TZ=Europe/Berlin
     
   webfsd:
-    image: "jonashaag/webfsd"
+    image: "webfsd"
     ports:
       - 9092:80
     volumes:
