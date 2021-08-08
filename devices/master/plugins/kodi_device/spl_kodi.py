@@ -364,8 +364,9 @@ class SplPlugin(SplThread):
 		# print("kodi query handler", queue_event.type, queue_event.user, max_result_count)
 		if queue_event.type == defaults.QUERY_FEASIBLE_DEVICES:
 			res = []
-			for device_friedly_name in self.devices:
-				res.append(device_friedly_name)
+			for device_friedly_name, cast in self.devices.items():
+				if cast.online:
+					res.append(device_friedly_name)
 			return res[:max_result_count]
 		return[]
 
