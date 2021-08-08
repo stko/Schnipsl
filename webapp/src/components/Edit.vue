@@ -4,10 +4,6 @@
 	<v-card>
 		<v-toolbar color="yellow">
 			<v-toolbar-items>
-				<v-btn icon @click="edit_delete_dialog_show = true">
-					<v-icon>mdi-delete</v-icon>
-				</v-btn>
-				<v-divider vertical></v-divider>
 			</v-toolbar-items>
 			<v-spacer></v-spacer>
 			<v-toolbar-title>{{ $t("edit_select_header") }}</v-toolbar-title>

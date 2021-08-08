@@ -8,7 +8,7 @@ WEB_ROOT_DIR = '../../webapp/dist'
 # all the different message types
 MSG_SOCKET_CONNECT = 'wsconnect'
 MSG_SOCKET_CLOSE = 'wsclose'
-MSG_SOCKET_EDIT_DELETE_REQUEST = 'edit_delete_request'
+MSG_SOCKET_CARDMENU_DELETE_REQUEST = 'cardmenu_delete_request'
 MSG_SOCKET_EDIT_PLAY_REQUEST = 'edit_play_request'
 MSG_SOCKET_EDIT_PLAY_ADD_REQUEST = 'edit_play_add_request'
 MSG_SOCKET_EDIT_RECORD_ADD_REQUEST = 'edit_record_add_request'

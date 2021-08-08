@@ -71,7 +71,7 @@ class SplPlugin(SplThread):
 		if queue_event.type == '_join':
 			# send the movie list
 			self.send_home_movie_list(queue_event)
-		if queue_event.type == defaults.MSG_SOCKET_EDIT_DELETE_REQUEST:
+		if queue_event.type == defaults.MSG_SOCKET_CARDMENU_DELETE_REQUEST:
 			uuid = queue_event.data['uuid']
 			if uuid in self.movielist:  # does the entry uuid exist
 				movie_list_entry = self.movielist[uuid]
