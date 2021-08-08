@@ -275,6 +275,7 @@ class Kodi:
 			return response
 		except Exception as ex:
 			print('Kodi jsonRPC exception on {0}: {1}'.format(self.host,str(ex)))
+			self.online=False
 			return None
 
 	def time_to_timestamp(self,time_struct):
