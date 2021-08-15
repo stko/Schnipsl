@@ -5,7 +5,7 @@ su -s ${USER}
 
 sudo apt -y update
 sudo apt -y upgrade
-sudo apt install -y docker docker-compose tmux git pip3 nodejs npm 
+sudo apt install -y docker docker-compose tmux git pip3 node npm 
 
 # the original docker jonashaag/webfsd works great on amd64, but not on armV7, so I've to build a small modified one
 # which supports also older alphine version, as the latest (nighty build) might crash the build (https://stackoverflow.com/a/54003007)
