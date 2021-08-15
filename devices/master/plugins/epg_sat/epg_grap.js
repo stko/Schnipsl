@@ -1,6 +1,6 @@
 /* 
 
-curl -s "http-URL.ts"  | nodejs epg_grap.js 1
+curl -s "http-URL.ts"  | node epg_grap.js 1
 
 reads ts stream from stdin, read epg data and stops after n repeats of the same time stamp.
 The received epg data is dumped as json string to stdout
