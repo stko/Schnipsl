@@ -9,6 +9,18 @@ docu about how to receive rtsp streams: http://www.live555.com/liveMedia/#testPr
 
 */
 
+String.prototype.hexEncode = function(){
+    var hex, i;
+
+    var result = "";
+    for (i=0; i<this.length; i++) {
+        hex = this.charCodeAt(i).toString(16);
+        result += ("000"+hex).slice(-4);
+    }
+
+    return result
+}
+
 var dvbtee = require('dvbtee')
 var fs = require('fs')
 
@@ -43,14 +55,15 @@ parser.on('data', function (data) {
 				if (service.descriptors) {
 					service.descriptors.forEach(function (descriptor) {
 						if (descriptor.descriptorTag == 72) {
-							var serviceName = descriptor.serviceName
-							var providerName = descriptor.providerName
+							var serviceName = descriptor.serviceName.replace(/\ufffd/g,"")
+							var providerName = descriptor.providerName.replace(/\ufffd/g,"")
 							//console.log(serviceId, providerName,serviceName)
 							result.service_ids[serviceId] = serviceName
 							if (serviceName.toLowerCase() === (channel_name)) {
 								channel_service_id = serviceId
 							}
 							if (!providers.includes(serviceName)){
+								console.log("servicename ",serviceName,serviceName.hexEncode())
 								providers.push(serviceName)
 							}
 						}
