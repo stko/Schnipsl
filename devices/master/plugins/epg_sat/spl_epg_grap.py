@@ -310,8 +310,12 @@ class SplPlugin(EPGProvider):
 					new_movie = MovieInfo(
 						url = url,
 						mime = 'video/MP2T',
-						title = title,
-						category = category,
+						# ------
+						# in previous versions title and category seemed to be swapped,
+						# so we swap it here to correct that...
+						title = category,
+						category = title,
+						# ----
 						source = plugin_name,
 						source_type = defaults.MOVIE_TYPE_STREAM,
 						provider = provider,
