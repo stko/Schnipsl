@@ -59,6 +59,11 @@ class SplPlugin(EPGProvider):
 				'stream_source':'SatIP Live'
 			}
 		)
+		self.channel_substitutes = JsonStorage(self.plugin_id, 'backup' ,"substitute.json", {
+				'RTL2':'RTLZWEI',
+				'WDR Köln':'WDR HD Kln',
+			}
+		)
 		self.stream_source=self.config.read('stream_source') # this defines who is the real data provider for the entries found in the EPG data
 
 		self.epgbuffer_file_name = DirectoryMapper.abspath(self.plugin_id, 'tmpfs','epgbuffer.ts', True)
@@ -271,10 +276,12 @@ class SplPlugin(EPGProvider):
 			url_st.fragment,
 		))
 
-
-
-		attr=[os.path.join(	self.origin_dir, 'epg_grap.sh') , url_epd_pids_only, provider , str(self.config.read('epgloops')), str(self.config.read('epgtimeout'))] # process arguments
-		self.logger.info  ("epg_grap started {0} {1} {2}".format(provider, url_epd_pids_only,repr(attr)))
+		if provider in self.channel_substitutes:
+			substituted_provider=self.channel_substitutes[provider]
+		else:
+			substituted_provider=provider
+		attr=[os.path.join(	self.origin_dir, 'epg_grap.sh') , url_epd_pids_only, substituted_provider , str(self.config.read('epgloops')), str(self.config.read('epgtimeout'))] # process arguments
+		self.logger.info  ("epg_grap started {0} {1} {2}".format(substituted_provider, url_epd_pids_only,repr(attr)))
 		try:
 			self.process = subprocess.Popen(attr, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 			cleaner = Timer(600, self.cleanProcess) # if epg_grap won't exit, try to terminate its process in 30 seconds
