@@ -67,8 +67,11 @@ class SplPlugin(SplThread):
 			if chromecasts:
 				cast = list(chromecasts)[0]
 				cast.wait()
-				print(cast.device)
-				print(cast.status)
+				try:
+					print(cast.device)
+					print(cast.status)
+				except Exception as ex:
+					pass # sometimes the cast does not have a device property
 				# CastStatus(is_active_input=True, is_stand_by=False, volume_level=1.0, volume_muted=False, app_id='CC1AD845', display_name='Default Media Receiver', namespaces=['urn:x-cast:com.google.cast.player.message', 'urn:x-cast:com.google.cast.media'], session_id='CCA39713-9A4F-34A6-A8BF-5D97BE7ECA5C', transport_id='web-9', status_text='')
 				mc = cast.media_controller
 				mc.play_media(
