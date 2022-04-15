@@ -276,10 +276,7 @@ class SplPlugin(EPGProvider):
 			url_st.fragment,
 		))
 
-		if provider in self.channel_substitutes:
-			substituted_provider=self.channel_substitutes[provider]
-		else:
-			substituted_provider=provider
+		substituted_provider=self.channel_substitutes.read(provider,provider) # try to find a better writing for the provider
 		attr=[os.path.join(	self.origin_dir, 'epg_grap.sh') , url_epd_pids_only, substituted_provider , str(self.config.read('epgloops')), str(self.config.read('epgtimeout'))] # process arguments
 		self.logger.info  ("epg_grap started {0} {1} {2}".format(substituted_provider, url_epd_pids_only,repr(attr)))
 		try:

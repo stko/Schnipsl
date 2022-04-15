@@ -63,7 +63,7 @@ parser.on('data', function (data) {
 								channel_service_id = serviceId
 							}
 							if (!providers.includes(serviceName)){
-								console.log("servicename ",serviceName,serviceName.hexEncode())
+								//console.log("servicename ",serviceName,serviceName.hexEncode())
 								providers.push(serviceName)
 							}
 						}
