@@ -153,21 +153,20 @@ class Kodi:
 		}
 		self.doJsonRPC(payload)
 
-	def seek(self, position):
+	def seek(self, relative_secs):
+		# seeks relative by secs +/-
 		print('Kodi seek')
 		if not self.isPlayerActive():
 			return
-		try:
-			duration=position *100/self.duration
-		except: #catch devision py zero
-			duration=0
 		payload ={
 			"jsonrpc":"2.0",
 			"id":1,
 			"method": "Player.Seek",
 			"params":{
 				"playerid": self.player_id,
-				"value": duration
+				"value": {
+					"seconds": relative_secs
+					}
 			 }
 		}
 		self.doJsonRPC(payload)
@@ -434,7 +433,7 @@ class SplPlugin(SplThread):
 				return
 			if position < 0:
 				position = 0
-			cast.seek(position)
+			cast.seek(position-cast.current_time)
 		except:
 			return
 
