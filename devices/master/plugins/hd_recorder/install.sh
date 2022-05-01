@@ -1,3 +1,5 @@
+# please note that in the actual design ffmpeg might be replaced with a self
+# compiled version in the Dockerfile to support the satip:// protocol
 sudo apt install -y webfs curl ffmpeg
 sudo sed -ibak 's/web_root="\/var\/www\/html"/web_root="\/var\/schnipsl"/' /etc/webfsd.conf
 sudo sed -ibak 's/web_port=""/web_port="9092"/' /etc/webfsd.conf

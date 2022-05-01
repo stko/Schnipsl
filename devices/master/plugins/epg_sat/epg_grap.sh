@@ -6,7 +6,7 @@ let maxtime=$4+20
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 if [[ "$5" == satip ]]
 then
-    CMD="/home/steffen/PlayGround/ffmpeg-test/ffmpeg/ffmpeg  -hide_banner -fflags discardcorrupt -copyts -probesize 8000000 -rtsp_flags +satip_raw -i \"$1\" -enc_time_base -1 -max_muxing_queue_size 4096 -muxdelay 0 -ignore_unknown -map 0 -c copy -f data  -y -"
+    CMD="ffmpeg  -hide_banner -fflags discardcorrupt -copyts -probesize 8000000 -rtsp_flags +satip_raw -i \"$1\" -enc_time_base -1 -max_muxing_queue_size 4096 -muxdelay 0 -ignore_unknown -map 0 -c copy -f data  -y -"
 else
     CMD="curl --connect-timeout 20 --max-time $maxtime -s \"$1\""
 fi
