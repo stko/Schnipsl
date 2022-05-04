@@ -2,11 +2,6 @@
 # -*- coding: utf-8 -*-
 
 # Standard module
-from jsonstorage import JsonStorage
-from splthread import SplThread
-from messagehandler import Query
-from classes import MovieInfo
-import defaults
 import json
 import os
 import sys
@@ -29,6 +24,11 @@ import zeroconf
 ScriptPath = os.path.realpath(os.path.join(
     os.path.dirname(__file__), "../common"))
 
+import defaults
+from classes import MovieInfo
+from messagehandler import Query
+from splthread import SplThread
+from jsonstorage import JsonStorage
 # Add the directory containing your module to the Python path (wants absolute paths)
 sys.path.append(os.path.abspath(ScriptPath))
 
