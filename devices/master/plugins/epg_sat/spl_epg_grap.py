@@ -277,7 +277,7 @@ class SplPlugin(EPGProvider):
 		))
 
 		substituted_provider=self.channel_substitutes.read(provider,provider) # try to find a better writing for the provider
-		attr=[os.path.join(	self.origin_dir, 'epg_grap.sh') , url_epd_pids_only, substituted_provider , str(self.config.read('epgloops')), str(self.config.read('epgtimeout'))] # process arguments
+		attr=[os.path.join(	self.origin_dir, 'epg_grap.sh') , url_epd_pids_only, substituted_provider , str(self.config.read('epgloops')), str(self.config.read('epgtimeout')),url_st.scheme] # process arguments
 		self.logger.info  ("epg_grap started {0} {1} {2}".format(substituted_provider, url_epd_pids_only,repr(attr)))
 		try:
 			self.process = subprocess.Popen(attr, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -286,7 +286,7 @@ class SplPlugin(EPGProvider):
 			epg_out, err = self.process.communicate()
 			#self.process.wait() # oops... not needed? harmless!
 			cleaner.cancel()
-			if err:
+			if self.process.returncode:
 				self.logger.warning ("epg_grap ended with an error:\n%s" % ( err))
 			else:
 				self.logger.debug ("epg_grap' ended")
