@@ -124,7 +124,7 @@ export default {
 } 
 #provider { 
   background:grey; 
-  color:lightgray; 
+  color:rgb(23, 184, 213); 
   font-weight: bold;
   grid-area: provider;
   text-align:right;
