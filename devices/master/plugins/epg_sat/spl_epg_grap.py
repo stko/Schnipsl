@@ -289,7 +289,7 @@ class SplPlugin(EPGProvider):
 			if self.process.returncode:
 				self.logger.warning ("epg_grap ended with an error:\n%s" % ( err))
 			else:
-				self.logger.debug ("epg_grap' ended")
+				self.logger.info ("epg_grap' ended with json:",epg_out.decode())
 				epg_json_string=epg_out.decode()
 				epg_json = json.loads(epg_json_string)
 				result = {}
@@ -378,7 +378,12 @@ class SplPlugin(EPGProvider):
 			epg_list =[]
 			if provider in self.timeline:
 				epg_list = self.timeline[provider]
-			nr_of_entries = len(epg_list)
+				if epg_list==None:
+					self.logger.info("Program Error: Undefined (None) epg list for provider {0} ".format(provider))
+			try:
+				nr_of_entries = len(epg_list)
+			except:
+				nr_of_entries = 0
 			i = 0
 			while i < nr_of_entries and time_stamp > int(epg_list[i].timestamp):
 				i += 1
