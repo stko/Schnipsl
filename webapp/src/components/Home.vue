@@ -14,25 +14,41 @@
 			</v-btn>
 		</v-toolbar>
 		<v-tabs grow>
-			<v-tab>	{{ $t("main_streams") }}	</v-tab>
-			<v-tab>	{{ $t("main_records") }}	</v-tab>
-			<v-tab>	{{ $t("main_templates") }}	</v-tab>
-			<v-tab>	{{ $t("main_timers") }}		</v-tab>
+			<v-tab> {{ $t("main_streams") }} </v-tab>
+			<v-tab> {{ $t("main_records") }} </v-tab>
+			<v-tab> {{ $t("main_templates") }} </v-tab>
+			<v-tab> {{ $t("main_timers") }} </v-tab>
 			<v-tab-item>
-				<live-card v-for="item in movie_list.streams" :key="item.uuid" :item="item" />
+				<live-card
+					v-for="item in movie_list.streams"
+					:key="item.uuid"
+					:item="item"
+				/>
 			</v-tab-item>
 			<v-tab-item>
-				<record-card v-for="item in movie_list.records" :key="item.uuid" :item="item" />
+				<record-card
+					v-for="item in movie_list.records"
+					:key="item.uuid"
+					:item="item"
+				/>
 			</v-tab-item>
 			<v-tab-item>
-				<quick-search-card v-for="item in movie_list.templates" :key="item.uuid" :item="item" />
+				<quick-search-card
+					v-for="item in movie_list.templates"
+					:key="item.uuid"
+					:item="item"
+				/>
 			</v-tab-item>
 			<v-tab-item>
-					<timer-card v-for="item in movie_list.timers" :key="item.uuid" :item="item" />
-		</v-tab-item>
+				<timer-card
+					v-for="item in movie_list.timers"
+					:key="item.uuid"
+					:item="item"
+				/>
+			</v-tab-item>
 		</v-tabs>
-		<v-footer app dark>
-			<player/>
+		<v-footer app dark v-show="show_player">
+			<player />
 		</v-footer>
 	</v-card>
 </template>
@@ -42,8 +58,8 @@
 import router from "../router";
 import messenger from "../messenger";
 import dayjs from "dayjs";
-import dayjsPluginUTC from 'dayjs-plugin-utc'
-dayjs.extend(dayjsPluginUTC, { parseToLocal: true })
+import dayjsPluginUTC from "dayjs-plugin-utc";
+dayjs.extend(dayjsPluginUTC, { parseToLocal: true });
 import LiveCard from "./LiveCard.vue";
 import RecordCard from "./RecordCard.vue";
 import TimerCard from "./TimerCard.vue";
@@ -57,13 +73,15 @@ export default {
 		RecordCard,
 		TimerCard,
 		QuickSearchCard,
-		Player
+		Player,
 	},
 	title() {
 		return `${this.name}`;
 	},
 	data() {
 		return {
+			show_player: false,
+			last_window_scroll_pos: 0,
 			movie_list: {
 				templates: [
 					{
@@ -138,7 +156,7 @@ export default {
 						},
 					},
 				],
-			}
+			},
 		};
 	},
 	created() {
@@ -150,6 +168,10 @@ export default {
 		} else {
 			this.nav2Set();
 		}
+		window.addEventListener("scroll", this.handleScroll);
+	},
+	destroyed() {
+		window.removeEventListener("scroll", this.handleScroll);
 	},
 	methods: {
 		nav2Set() {
@@ -239,9 +261,14 @@ export default {
 			}
 		},
 		progress(viewed, duration) {
-			console.log("progress",viewed,duration)
-			return viewed*100 / duration
-		}
+			console.log("progress", viewed, duration);
+			return (viewed * 100) / duration;
+		},
+		handleScroll() {
+			this.show_player = this.last_window_scroll_pos <= window.scrollY;
+			this.last_window_scroll_pos = window.scrollY;
+			console.log(window.scrollY,this.show_player);
+		},
 	},
 	provide: function () {
 		return {
@@ -252,7 +279,7 @@ export default {
 			localDateTime: this.localDateTime,
 			duration: this.duration,
 			localMinutes: this.localMinutes,
-			progress: this.progress
+			progress: this.progress,
 		};
 	},
 };
