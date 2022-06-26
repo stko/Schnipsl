@@ -1,5 +1,6 @@
 <!-- https://blog.kulturbanause.de/2013/12/css-grid-layout-module/ -->
 <template>
+	<transition>
 	<div v-show="isVisible()" class="schnipsl-player">
 		<div id="name">{{ movie_info.title }}</div>
 		<div id="series">{{ movie_info.category }}</div>
@@ -33,7 +34,7 @@
 		</div>
 		<div id="play">
 			<v-btn icon class="mx-4" @click="player_key('play')">
-				<v-icon>{{ player_pos.play==1 ? "mdi-pause" : "mdi-play" }}</v-icon>
+				<v-icon>{{ player_pos.play == 1 ? "mdi-pause" : "mdi-play" }}</v-icon>
 			</v-btn>
 		</div>
 		<div id="plus5">
@@ -69,10 +70,12 @@
 		<div id="dialogs">
 			<v-dialog dark v-model="volume_dialog_show" min-width="98vw">
 				<v-card>
-					<v-card-title class="justify-center">{{ $t("player_volume") }}</v-card-title>
+					<v-card-title class="justify-center">{{
+						$t("player_volume")
+					}}</v-card-title>
 					<v-divider></v-divider>
 					<v-card-text>
-	<!--
+						<!--
 							<v-slider
 								v-model="player_pos.volume"
 								prepend-icon="mdi-volume-low"
@@ -80,34 +83,36 @@
 								@click="player_volume()"
 							></v-slider>
 	-->
-							<round-slider
-								v-model="volume"
-								start-angle="315"
-								end-angle="+270"
-								line-cap="round"
-								:drag="player_volume()"
-							/>
+						<round-slider
+							v-model="volume"
+							start-angle="315"
+							end-angle="+270"
+							line-cap="round"
+							:drag="player_volume()"
+						/>
 					</v-card-text>
 				</v-card>
 			</v-dialog>
-			<v-dialog dark v-model="position_dialog_show"  min-width="98vw">
+			<v-dialog dark v-model="position_dialog_show" min-width="98vw">
 				<v-card>
-					<v-card-title class="justify-center">{{ $t("player_position") }}</v-card-title>
+					<v-card-title class="justify-center">{{
+						$t("player_position")
+					}}</v-card-title>
 					<v-divider></v-divider>
 					<v-card-text>
-	<!-- 
+						<!-- 
 						{{ duration(player_pos.current_time) }}
 						<v-slider v-model="sliderPosition" append-icon="mdi-timer"></v-slider>
 						{{ duration(movie_info.duration - player_pos.current_time) }}
 	-->
-							<round-slider
-								v-model="sliderPosition"
-								start-angle="315"
-								end-angle="+270"
-								line-cap="round"
-								:max=player_pos.duration
-								:tooltipFormat="formatPosition"
-							/>
+						<round-slider
+							v-model="sliderPosition"
+							start-angle="315"
+							end-angle="+270"
+							line-cap="round"
+							:max="player_pos.duration"
+							:tooltipFormat="formatPosition"
+						/>
 					</v-card-text>
 				</v-card>
 			</v-dialog>
@@ -142,7 +147,8 @@
 					</v-card-actions>
 				</v-card>
 			</v-dialog>
-			<v-dialog dark
+			<v-dialog
+				dark
 				v-model="stop_and_record_dialog_show"
 				scrollable
 				max-width="300px"
@@ -170,21 +176,23 @@
 			</v-dialog>
 		</div>
 	</div>
+	</transition>
 </template>
 <script>
 import messenger from "../messenger";
-import RoundSlider from 'vue-round-slider'
+import RoundSlider from "vue-round-slider";
 import dayjs from "dayjs";
-import dayjsPluginUTC from 'dayjs-plugin-utc'
-dayjs.extend(dayjsPluginUTC, { parseToLocal: true })
+import dayjsPluginUTC from "dayjs-plugin-utc";
+dayjs.extend(dayjsPluginUTC, { parseToLocal: true });
 
 export default {
 	name: "player",
 	components: {
-		RoundSlider
+		RoundSlider,
 	},
 	data() {
 		return {
+			allow_to_show: true,
 			player_pos: {
 				play: 0,
 				current_time: 55,
@@ -214,20 +222,23 @@ export default {
 		};
 	},
 	created() {
-		messenger.register(
-			"player",
-			this.messenger_onMessage,null, null);
+		messenger.register("player", this.messenger_onMessage, null, null);
 	},
 	methods: {
-		isVisible(){
-			return this.player_pos.play!=0;
+		isVisible() {
+			return this.player_pos.play != 0 && this.allow_to_show;
+		},
+		can_be_shown(show) {
+			//get signaled from Home.vue if is ok to shown the player
+			console.log("requested player show flag", show);
+			this.allow_to_show = show;
 		},
 		messenger_onMessage(type, data) {
 			console.log("incoming message to player", type, data);
 			if (type == "player_position") {
-				this.player_pos = data
-				if (this.volume!=this.player_pos.volume){
-				this.volume=this.player_pos.volume
+				this.player_pos = data;
+				if (this.volume != this.player_pos.volume) {
+					this.volume = this.player_pos.volume;
 				}
 			}
 			if (type == "player_movie_info") {
@@ -249,17 +260,18 @@ export default {
 			messenger.emit("player_key", { keyid: id });
 		},
 		player_volume() {
-			if (this.volume_old==this.volume){ // for unknown reason this routine is triggered all the time- so we try to supress the effect here
-				return
+			if (this.volume_old == this.volume) {
+				// for unknown reason this routine is triggered all the time- so we try to supress the effect here
+				return;
 			}
 			console.log("Send volume", this.volume);
 			messenger.emit("player_volume", {
 				timer_vol: this.volume,
 			});
-			this.volume_old=this.volume
+			this.volume_old = this.volume;
 		},
-		formatPosition(){
-			return this.duration(this.player_pos.current_time)
+		formatPosition() {
+			return this.duration(this.player_pos.current_time);
 		},
 		player_select_device() {
 			console.log("Send device");
@@ -297,10 +309,7 @@ export default {
 		sliderPosition: {
 			// getter
 			get: function () {
-				if (
-					this.player_pos.current_time >= 0 &&
-					this.player_pos.duration > 0
-				) {
+				if (this.player_pos.current_time >= 0 && this.player_pos.duration > 0) {
 					return parseInt(this.player_pos.current_time);
 				} else {
 					return NaN;
@@ -308,7 +317,7 @@ export default {
 			},
 			// setter
 			set: function (newValue) {
-				console.log("Send timer by setter",newValue);
+				console.log("Send timer by setter", newValue);
 				this.player_pos.current_time = newValue;
 				messenger.emit("player_time", {
 					timer_pos: newValue,
@@ -437,6 +446,17 @@ export default {
 	grid-area: description;
 }
 .v-icon {
-	color:rgb(13, 65, 207)
+	color: rgb(13, 65, 207);
+}
+.v-enter-active,
+.v-leave-active {
+  transition: opacity 0.5s ease;
+  /*transition: max-height .5s;*/
+}
+
+.v-enter-from,
+.v-leave-to {
+  opacity: 0;
+  /*max-height: 0;*/
 }
 </style>

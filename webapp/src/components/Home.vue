@@ -47,8 +47,8 @@
 				/>
 			</v-tab-item>
 		</v-tabs>
-		<v-footer app dark v-show="show_player">
-			<player />
+		<v-footer app dark>
+			<player ref="player" />
 		</v-footer>
 	</v-card>
 </template>
@@ -80,7 +80,6 @@ export default {
 	},
 	data() {
 		return {
-			show_player: false,
 			last_window_scroll_pos: 0,
 			movie_list: {
 				templates: [
@@ -196,6 +195,9 @@ export default {
 			console.log("incoming message to home", type, data);
 			if (type == "home_movie_info_list") {
 				this.movie_list = data;
+				// as this might be a reconnect, we switch the player component off, just in case that it is still open
+				this.$refs.player.can_be_shown(false)
+
 			}
 			if (type == "home_movie_info_update") {
 				var uuid = data.uuid;
@@ -265,9 +267,9 @@ export default {
 			return (viewed * 100) / duration;
 		},
 		handleScroll() {
-			this.show_player = this.last_window_scroll_pos <= window.scrollY;
+			this.$refs.player.can_be_shown(this.last_window_scroll_pos <= window.scrollY)
 			this.last_window_scroll_pos = window.scrollY;
-			console.log(window.scrollY,this.show_player);
+			console.log(window.scrollY);
 		},
 	},
 	provide: function () {
