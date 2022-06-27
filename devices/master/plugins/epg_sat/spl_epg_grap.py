@@ -289,7 +289,7 @@ class SplPlugin(EPGProvider):
 			if self.process.returncode:
 				self.logger.warning ("epg_grap ended with an error:\n%s" % ( err))
 			else:
-				self.logger.info ("epg_grap' ended with json:",str(epg_out))
+				self.logger.info ("epg_grap' ended with json:\n%s",str(epg_out))
 				epg_json_string=epg_out.decode()
 				epg_json = json.loads(epg_json_string)
 				result = {}
