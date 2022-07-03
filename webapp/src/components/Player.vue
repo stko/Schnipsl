@@ -339,7 +339,7 @@ export default {
 			});
 		},
 		calculate_position(x,y){
-			console.log("Fuck",x,y)
+			console.log(x,y)
 			console.log(this.player_pos.current_time,this.position_step_size)
 			if (!(this.player_pos.current_time >= 0 && this.player_pos.duration > 0)) {
 				//return
