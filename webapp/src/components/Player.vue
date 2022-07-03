@@ -1,81 +1,81 @@
 <!-- https://blog.kulturbanause.de/2013/12/css-grid-layout-module/ -->
 <template>
 	<transition>
-	<div v-show="isVisible()" class="schnipsl-player">
-		<div id="name">{{ movie_info.title }}</div>
-		<div id="series">{{ movie_info.category }}</div>
-		<div id="provider">{{ movie_info.provider }}</div>
-		<div id="day">
-			{{ localDate(movie_info.timestamp, $t("locale_date_format")) }}
-		</div>
-		<div id="time">{{ duration(movie_info.current_time) }}</div>
-		<div id="duration">{{ duration(movie_info.duration) }}</div>
-		<div id="show">
-			<v-btn icon @click="description_show = !description_show">
-				<v-icon>{{
-					description_show ? "mdi-chevron-up" : "mdi-chevron-down"
-				}}</v-icon>
-			</v-btn>
-		</div>
-		<div id="volume">
-			<v-btn icon class="mx-4" @click="volume_dialog_show = true">
-				<v-icon size="24px">mdi-volume-high</v-icon>
-			</v-btn>
-		</div>
-		<div id="prev">
-			<v-btn icon class="mx-4" @click="player_key('prev')">
-				<v-icon size="24px">mdi-skip-previous</v-icon>
-			</v-btn>
-		</div>
-		<div id="minus5">
-			<v-btn icon class="mx-4" @click="player_key('minus5')">
-				<v-icon size="24px">mdi-rewind-5</v-icon>
-			</v-btn>
-		</div>
-		<div id="play">
-			<v-btn icon class="mx-4" @click="player_key('play')">
-				<v-icon>{{ player_pos.play == 1 ? "mdi-pause" : "mdi-play" }}</v-icon>
-			</v-btn>
-		</div>
-		<div id="plus5">
-			<v-btn icon class="mx-4" @click="player_key('plus5')">
-				<v-icon size="24px">mdi-fast-forward-5</v-icon>
-			</v-btn>
-		</div>
-		<div id="stop">
-			<v-btn icon class="mx-4" @click="player_key('stop')">
-				<v-icon size="24px">mdi-stop</v-icon>
-			</v-btn>
-		</div>
-		<div id="bed">
-			<v-btn
-				icon
-				class="mx-4"
-				v-if="movie_info.recordable"
-				@click="stop_and_record_dialog_show = true"
-			>
-				<v-icon size="24px">mdi-bed</v-icon>
-			</v-btn>
-		</div>
-		<div id="position">
-			<v-btn icon class="mx-4" @click="position_dialog_show = true">
-				<v-icon size="24px">mdi-progress-clock</v-icon>
-			</v-btn>
-		</div>
-		<v-expand-transition>
-			<div id="description" v-show="description_show">
-				{{ movie_info.description }}
+		<div v-show="isVisible()" class="schnipsl-player">
+			<div id="name">{{ movie_info.title }}</div>
+			<div id="series">{{ movie_info.category }}</div>
+			<div id="provider">{{ movie_info.provider }}</div>
+			<div id="day">
+				{{ localDate(movie_info.timestamp, $t("locale_date_format")) }}
 			</div>
-		</v-expand-transition>
-		<div id="dialogs">
-			<v-dialog dark v-model="volume_dialog_show" min-width="98vw">
-				<v-card>
-					<v-card-title class="justify-center">{{
-						$t("player_volume")
-					}}</v-card-title>
-					<v-divider></v-divider>
-					<v-card-text>
-						<!--
+			<div id="time">{{ duration(movie_info.current_time) }}</div>
+			<div id="duration">{{ duration(movie_info.duration) }}</div>
+			<div id="show">
+				<v-btn icon @click="description_show = !description_show">
+					<v-icon>{{
+						description_show ? "mdi-chevron-up" : "mdi-chevron-down"
+					}}</v-icon>
+				</v-btn>
+			</div>
+			<div id="volume">
+				<v-btn icon class="mx-4" @click="volume_dialog_show = true">
+					<v-icon size="24px">mdi-volume-high</v-icon>
+				</v-btn>
+			</div>
+			<div id="prev">
+				<v-btn icon class="mx-4" @click="player_key('prev')">
+					<v-icon size="24px">mdi-skip-previous</v-icon>
+				</v-btn>
+			</div>
+			<div id="minus5">
+				<v-btn icon class="mx-4" @click="player_key('minus5')">
+					<v-icon size="24px">mdi-rewind-5</v-icon>
+				</v-btn>
+			</div>
+			<div id="play">
+				<v-btn icon class="mx-4" @click="player_key('play')">
+					<v-icon>{{ player_pos.play == 1 ? "mdi-pause" : "mdi-play" }}</v-icon>
+				</v-btn>
+			</div>
+			<div id="plus5">
+				<v-btn icon class="mx-4" @click="player_key('plus5')">
+					<v-icon size="24px">mdi-fast-forward-5</v-icon>
+				</v-btn>
+			</div>
+			<div id="stop">
+				<v-btn icon class="mx-4" @click="player_key('stop')">
+					<v-icon size="24px">mdi-stop</v-icon>
+				</v-btn>
+			</div>
+			<div id="bed">
+				<v-btn
+					icon
+					class="mx-4"
+					v-if="movie_info.recordable"
+					@click="stop_and_record_dialog_show = true"
+				>
+					<v-icon size="24px">mdi-bed</v-icon>
+				</v-btn>
+			</div>
+			<div id="position">
+				<v-btn icon class="mx-4" @click="position_dialog_show = true">
+					<v-icon size="24px">mdi-progress-clock</v-icon>
+				</v-btn>
+			</div>
+			<v-expand-transition>
+				<div id="description" v-show="description_show">
+					{{ movie_info.description }}
+				</div>
+			</v-expand-transition>
+			<div id="dialogs">
+				<v-dialog dark v-model="volume_dialog_show" min-width="98vw">
+					<v-card>
+						<v-card-title class="justify-center">{{
+							$t("player_volume")
+						}}</v-card-title>
+						<v-divider></v-divider>
+						<v-card-text>
+							<!--
 							<v-slider
 								v-model="player_pos.volume"
 								prepend-icon="mdi-volume-low"
@@ -83,99 +83,126 @@
 								@click="player_volume()"
 							></v-slider>
 	-->
-						<round-slider
-							v-model="volume"
-							start-angle="315"
-							end-angle="+270"
-							line-cap="round"
-							:drag="player_volume()"
-						/>
-					</v-card-text>
-				</v-card>
-			</v-dialog>
-			<v-dialog dark v-model="position_dialog_show" min-width="98vw">
-				<v-card>
-					<v-card-title class="justify-center">{{
-						$t("player_position")
-					}}</v-card-title>
-					<v-divider></v-divider>
-					<v-card-text>
-						<!-- 
+							<round-slider
+								v-model="volume"
+								start-angle="315"
+								end-angle="+270"
+								line-cap="round"
+								:drag="player_volume()"
+							/>
+						</v-card-text>
+					</v-card>
+				</v-dialog>
+				<v-dialog dark v-model="position_dialog_show" min-width="98vw">
+					<v-card>
+						<v-card-title class="justify-center">{{
+							$t("player_position")
+						}}</v-card-title>
+						<v-divider></v-divider>
+						<v-card-text>
+							<!-- 
 						{{ duration(player_pos.current_time) }}
 						<v-slider v-model="sliderPosition" append-icon="mdi-timer"></v-slider>
 						{{ duration(movie_info.duration - player_pos.current_time) }}
 	-->
-						<round-slider
-							v-model="sliderPosition"
-							start-angle="315"
-							end-angle="+270"
-							line-cap="round"
-							:max="player_pos.duration"
-							:tooltipFormat="formatPosition"
-						/>
-					</v-card-text>
-				</v-card>
-			</v-dialog>
-			<v-dialog dark v-model="device_dialog_show" scrollable max-width="300px">
-				<v-card>
-					<v-card-title>{{
-						$t("player_select_device_dialog_header")
-					}}</v-card-title>
-					<v-divider></v-divider>
-					<v-card-text style="height: 300px">
-						<v-radio-group v-model="device_info.actual_device" column>
-							<v-radio
-								v-for="item in device_info.devices"
-								:value="item"
-								:label="item"
-								:key="item"
-								:checked="(item = device_info.actual_device)"
-							></v-radio>
-						</v-radio-group>
-					</v-card-text>
-					<v-divider></v-divider>
-					<v-card-actions>
-						<v-btn
-							color="blue darken-1"
-							text
-							@click="device_dialog_show = false"
-							>{{ $t("player_select_device_dialog_cancel") }}</v-btn
-						>
-						<v-btn color="blue darken-1" text @click="player_select_device()">{{
-							$t("player_select_device_dialog_select")
-						}}</v-btn>
-					</v-card-actions>
-				</v-card>
-			</v-dialog>
-			<v-dialog
-				dark
-				v-model="stop_and_record_dialog_show"
-				scrollable
-				max-width="300px"
-			>
-				<v-card>
-					<v-card-title>{{
-						$t("player_stop_and_record_dialog_header")
-					}}</v-card-title>
-					<v-divider></v-divider>
-					<v-card-actions>
-						<v-btn
-							color="blue darken-1"
-							text
-							@click="stop_and_record_dialog_show = false"
-							>{{ $t("player_stop_and_record_dialog_cancel") }}</v-btn
-						>
-						<v-btn
-							color="blue darken-1"
-							text
-							@click="stopAndRecord(movie_info.uri)"
-							>{{ $t("player_stop_and_record_dialog_select") }}</v-btn
-						>
-					</v-card-actions>
-				</v-card>
-			</v-dialog>
+							<v-divider></v-divider>
+							<v-btn
+								icon
+								class="mx-4"
+								@click="calculate_position(false, false)"
+							>
+								<v-icon size="24px">mdi-arrow-top-left-bold-outline</v-icon>
+							</v-btn>
+							<v-btn icon class="mx-4" @click="calculate_position(true, false)">
+								<v-icon size="24px">mdi-arrow-top-right-bold-outline</v-icon>
+							</v-btn>
+							<round-slider
+								v-model="sliderPosition"
+								start-angle="315"
+								end-angle="+270"
+								line-cap="round"
+								:max="player_pos.duration"
+								:tooltipFormat="formatPosition"
+								:change="player_position"
+							/>
+							<v-divider></v-divider>
+							<v-btn icon class="mx-4" @click="calculate_position(false, true)">
+								<v-icon size="24px">mdi-arrow-bottom-left-bold-outline</v-icon>
+							</v-btn>
+							<v-btn icon class="mx-4" @click="calculate_position(true, true)">
+								<v-icon size="24px">mdi-arrow-bottom-right-bold-outline</v-icon>
+							</v-btn>
+						</v-card-text>
+					</v-card>
+				</v-dialog>
+				<v-dialog
+					dark
+					v-model="device_dialog_show"
+					scrollable
+					max-width="300px"
+				>
+					<v-card>
+						<v-card-title>{{
+							$t("player_select_device_dialog_header")
+						}}</v-card-title>
+						<v-divider></v-divider>
+						<v-card-text style="height: 300px">
+							<v-radio-group v-model="device_info.actual_device" column>
+								<v-radio
+									v-for="item in device_info.devices"
+									:value="item"
+									:label="item"
+									:key="item"
+									:checked="(item = device_info.actual_device)"
+								></v-radio>
+							</v-radio-group>
+						</v-card-text>
+						<v-divider></v-divider>
+						<v-card-actions>
+							<v-btn
+								color="blue darken-1"
+								text
+								@click="device_dialog_show = false"
+								>{{ $t("player_select_device_dialog_cancel") }}</v-btn
+							>
+							<v-btn
+								color="blue darken-1"
+								text
+								@click="player_select_device()"
+								>{{ $t("player_select_device_dialog_select") }}</v-btn
+							>
+						</v-card-actions>
+					</v-card>
+				</v-dialog>
+				<v-dialog
+					dark
+					v-model="stop_and_record_dialog_show"
+					scrollable
+					max-width="300px"
+				>
+					<v-card>
+						<v-card-title>{{
+							$t("player_stop_and_record_dialog_header")
+						}}</v-card-title>
+						<v-divider></v-divider>
+						<v-card-actions>
+							<v-btn
+								color="blue darken-1"
+								text
+								@click="stop_and_record_dialog_show = false"
+								>{{ $t("player_stop_and_record_dialog_cancel") }}</v-btn
+							>
+							<v-btn
+								color="blue darken-1"
+								text
+								@click="stopAndRecord(movie_info.uri)"
+								>{{ $t("player_stop_and_record_dialog_select") }}</v-btn
+							>
+						</v-card-actions>
+					</v-card>
+				</v-dialog>
+			</div>
 		</div>
-	</div>
 	</transition>
 </template>
 <script>
@@ -219,6 +246,7 @@ export default {
 			position_dialog_show: false,
 			device_dialog_show: false,
 			stop_and_record_dialog_show: false,
+			position_step_size : 4*60 // 4 mins
 		};
 	},
 	created() {
@@ -270,6 +298,12 @@ export default {
 			});
 			this.volume_old = this.volume;
 		},
+		player_position(){
+			console.log("send new position", this.player_pos.current_time);
+			messenger.emit("player_time", {
+				timer_pos: this.player_pos.current_time,
+			})
+		},
 		formatPosition() {
 			return this.duration(this.player_pos.current_time);
 		},
@@ -304,6 +338,53 @@ export default {
 				uri: uri,
 			});
 		},
+		calculate_position(x,y){
+			console.log("Fuck",x,y)
+			console.log(this.player_pos.current_time,this.position_step_size)
+			if (!(this.player_pos.current_time >= 0 && this.player_pos.duration > 0)) {
+				//return
+			}
+			if (!x && !y){
+				if (this.player_pos.current_time -this.position_step_size *2  >= 0 ){
+					this.position_step_size = this.position_step_size * 2
+					this.player_pos.current_time = this.player_pos.current_time -  this.position_step_size
+					console.log(this.player_pos.current_time,this.position_step_size)
+					this.player_position()
+				}
+				return
+			}
+			if (x && !y){
+				if (this.player_pos.current_time + this.position_step_size * 2 < this.player_pos.duration ){
+					this.position_step_size = this.position_step_size * 2
+					this.player_pos.current_time = this.player_pos.current_time +  this.position_step_size
+					console.log(this.player_pos.current_time,this.position_step_size)
+					this.player_position()
+				}
+				return
+			}			
+			if (!x && y){
+				if (this.position_step_size>10){
+					this.position_step_size = this.position_step_size / 2
+				}
+				if (this.player_pos.current_time -this.position_step_size  >= 0 ){
+					this.player_pos.current_time = this.player_pos.current_time -  this.position_step_size
+					console.log(this.player_pos.current_time,this.position_step_size)
+					this.player_position()
+				}
+				return
+			}
+			if (x && y){
+				if (this.player_pos.current_time + this.position_step_size / 2 < this.player_pos.duration ){
+					if (this.position_step_size>10){
+						this.position_step_size = this.position_step_size / 2
+					}
+					this.player_pos.current_time = this.player_pos.current_time +  this.position_step_size
+					console.log(this.player_pos.current_time,this.position_step_size)
+					this.player_position()
+				}
+				return
+			}
+		}
 	},
 	computed: {
 		sliderPosition: {
@@ -317,11 +398,8 @@ export default {
 			},
 			// setter
 			set: function (newValue) {
-				console.log("Send timer by setter", newValue);
+				console.log("Update timer by setter", newValue);
 				this.player_pos.current_time = newValue;
-				messenger.emit("player_time", {
-					timer_pos: newValue,
-				});
 			},
 		},
 	},
@@ -450,13 +528,13 @@ export default {
 }
 .v-enter-active,
 .v-leave-active {
-  transition: opacity 0.5s ease;
-  /*transition: max-height .5s;*/
+	transition: opacity 0.5s ease;
+	/*transition: max-height .5s;*/
 }
 
 .v-enter-from,
 .v-leave-to {
-  opacity: 0;
-  /*max-height: 0;*/
+	opacity: 0;
+	/*max-height: 0;*/
 }
 </style>
