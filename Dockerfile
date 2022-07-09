@@ -23,11 +23,15 @@ RUN apt-get update -qq && apt-get -y install \
   cmake \
   git-core \
   libass-dev \
+  libass9 \
   libfreetype6-dev \
   libgnutls28-dev \
   libmp3lame-dev \
+  libmp3lame0 \
   libtool \
   libvorbis-dev \
+  libvorbis0a \
+  libvorbisenc2 \
   meson \
   ninja-build \
   pkg-config \
