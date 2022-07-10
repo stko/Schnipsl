@@ -1,4 +1,4 @@
-FROM debian:latest AS builder
+FROM debian:buster AS builder
 
 WORKDIR /app
 ADD webapp ./webapp
@@ -68,7 +68,8 @@ hash -r
 
 
 
-FROM python:3
+#FROM python:3
+FROM python:3-buster
 
 WORKDIR /app/webapp
 COPY --from=builder /app/webapp/dist ./dist
@@ -82,7 +83,7 @@ ADD devices/common ../common
 WORKDIR /app
 COPY installdockers.sh /tmp/installdockers.sh
 RUN chmod +x /tmp/installdockers.sh
-RUN /usr/local/bin/python -m pip install --upgrade pip
+RUN /usr/local/bin/python3 -m pip install --upgrade pip
 RUN bash -c "/tmp/installdockers.sh"
 
 # copy the self compiled ffmeg AFTER all installers went through
