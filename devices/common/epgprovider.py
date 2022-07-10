@@ -194,23 +194,25 @@ class EPGProvider(SplThread):
 					timestamp_queries_unsorted={}
 					for category_query in queue_event.params['select_category_values']:
 						try:
-							json_query_data=json.loads(category_query)
-							timestamp_query_type=json_query_data["type"]
-							if not timestamp_query_type in timestamp_queries_unsorted:
-								timestamp_queries_unsorted[timestamp_query_type]=set()
-							timestamp_queries_unsorted[timestamp_query_type].add(json_query_data["expression"])
+							category_query_type=category_query["type"]
+							if not category_query_type in timestamp_queries_unsorted:
+								timestamp_queries_unsorted[category_query_type]=set()
+							timestamp_queries_unsorted[category_query_type].add(category_query["expression"])
 						except:
 							self.get_instance().logger.warning('malformed category received:',category_query)
 					# after we jave sorted the expressions, we need to make a proper query string out of it
-					timestamp_queries={}
+					type_queries={}
 					for type, expressions in timestamp_queries_unsorted.items():
 					# first we OR each category for itself
-						timestamp_queries[type]='(' +' OR '.join(map(lambda pr: 'timestamp:'+pr, expressions)) + ')'
-					# then we AND each category
-					timestamp_query='(' +' AND '.join( timestamp_queries.values()) + ')'
+						if type == "daytime":
+							type_queries[type]='(' +' OR '.join(map(lambda pr: 'timestamp:'+pr, expressions)) + ')'
+						if type == "category":
+							type_queries[type]='(' +' OR '.join(map(lambda pr: 'category:'+pr, expressions)) + ')'
+					# then we AND each different type
+					type_query='(' +' AND '.join( type_queries.values()) + ')'
 					if query_string:
 						query_string+=' AND '
-					query_string += timestamp_query
+					query_string += type_query
 					qp.add_plugin(DateParserPlugin())
 				try: # if select_searchtext is empty in the browser, it will be not set in the JSON message and can cause an key exeption here, so we have to catch that!
 					query_string += ' ' + queue_event.params['select_searchtext']
@@ -259,13 +261,22 @@ class EPGProvider(SplThread):
 		but others are not, as there time is in the future
 		'''
 
+	def sleep(self):
+		''' 
+		this method shall be overridden by childs if another delay behaviour is needed
+		'''
+		time.sleep(10)
+
 	def _run(self):
 		''' starts the server
 		'''
 		tick = 0
 		while self.runFlag:
 			self.check_for_updates()
-			time.sleep(10)
+			try:
+				self.sleep() # does the implementation has an own sleep() method?
+			except: # if not, then
+				time.sleep(10)
 
 	def _stop(self):
 		self.runFlag = False
@@ -278,3 +289,25 @@ class EPGProvider(SplThread):
 		but now for whole long running operations
 
 		'''
+
+	def identify_mime_type_by_extension(file_name, allowed_mime_types={
+		".flv" : "video/x-flv", # Flash
+		".mp4" : "video/mp4", # MPEG-4
+		".m3u8" : "application/x-mpegURL", # iPhone Index
+		".ts" : "video/MP2T", # iPhone Segment
+		".3gp" : "video/3gpp", # 3GP Mobile
+		".mov" : "video/quicktime", # QuickTime
+		".avi" : "video/x-msvideo", # A/V Interleave
+		".wmv" : "video/x-ms-wmv", # Windows Media
+	}): 	#  static just because to allow to use them for a standalone use
+		'''Identifies allowed mime types
+
+		Make sure that self.lock() is called for single atom modify operations,
+		but now for whole long running operations
+
+		'''
+		file_extension = os.path.splitext(
+			file_name)[1].lower()
+		if file_extension not in allowed_mime_types:
+			return None
+		return allowed_mime_types[file_extension]

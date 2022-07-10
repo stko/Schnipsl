@@ -65,11 +65,11 @@ class SplPlugin(EPGProvider):
 		self.categories = [
 			{
 				'text': 'category_last_week',
-				'value': '{"type": "day", "expression": "[\'-1 week\' to now]"}'
+				'value': {"type": "daytime", "expression": "[\'-1 week\' to now]"}
 			},
 			{
 				'text': 'category_last_month',
-				'value': '{"type": "day", "expression": "[\'-4 week\' to now]"}'
+				'value': {"type": "daytime", "expression": "[\'-4 week\' to now]"}
 			},
 		]
 		# additional to our whoosh db, we need to cache the providers to not have
