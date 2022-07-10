@@ -89,19 +89,19 @@ class SplPlugin(EPGProvider):
 		self.categories = [
 			{
 				'text': 'category_today',
-				'value': '{"type": "day", "expression": "today"}'
+				'value': {"type": "daytime", "expression": "today"}
 			},
 			{
 				'text': 'category_tomorrow',
-				'value': '{"type": "day", "expression": "tomorrow"}'
+				'value': {"type": "daytime", "expression": "tomorrow"}
 			},
 			{
 				'text': 'category_now',
-				'value': '{"type": "time", "expression": "now"}'
+				'value': {"type": "daytime", "expression": "now"}
 			},
 			{
 				'text': 'category_evening',
-				'value': '{"type": "time", "expression": "[\'8 PM\' to tomorrow"}'
+				'value': {"type": "daytime", "expression": "[\'8 PM\' to tomorrow"}
 			},
 		]
 
