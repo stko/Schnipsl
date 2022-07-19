@@ -177,7 +177,8 @@ class EPGProvider(SplThread):
 			return res
 		if queue_event.type == defaults.QUERY_AVAILABLE_MOVIES:
 			res = []
-			if not self.get_plugin_names()[0] in queue_event.params['select_source_values']:
+			intersection_list = [value for value in self.get_plugin_names() if value in  queue_event.params['select_source_values']]
+			if not intersection_list:
 				return res
 			with self.whoosh_ix.searcher() as searcher:
 				# qp = QueryParser('title', schema=self.whoosh_ix.schema)
