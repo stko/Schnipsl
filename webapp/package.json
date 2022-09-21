@@ -18,7 +18,7 @@
     "vue-i18n": "^8.24.5",
     "vue-round-slider": "^1.0.1",
     "vue-router": "^3.5.2",
-    "vuetify": "^2.5.6"
+    "vuetify": "^2.6.10"
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "~4.3.0",
